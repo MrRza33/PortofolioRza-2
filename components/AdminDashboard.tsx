@@ -27,8 +27,19 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
 
   // Handlers for switching forms
   const startEdit = (item: any) => {
-    setFormData({ ...item });
-    setIsEditing(item.id);
+    // Ensure all optional fields exist for Profile to ensure form generation loop picks them up
+    if (activeTab === 'profile') {
+        const fullProfile = {
+            ...item,
+            logo_url: item.logo_url || '',
+            portfolio_url: item.portfolio_url || ''
+        };
+        setFormData(fullProfile);
+        setIsEditing(item.id);
+    } else {
+        setFormData({ ...item });
+        setIsEditing(item.id);
+    }
   };
 
   const startNew = (type: Tab) => {
@@ -139,7 +150,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                             {/* Preview for images */}
                             {(formData[key] && !isDoc) && (
                                 <div className="mt-2 relative group w-fit">
-                                    <img src={formData[key]} alt="Preview" className="h-32 w-auto object-cover rounded border border-neutral-700 bg-black" />
+                                    <img src={formData[key]} alt="Preview" className="h-32 w-auto object-contain bg-black rounded border border-neutral-700" />
                                 </div>
                             )}
                             {/* Link preview for docs */}
@@ -269,7 +280,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                     {data.profile.logo_url ? (
                          <img src={data.profile.logo_url} alt="Logo" className="h-16 w-auto object-contain mb-6 border border-neutral-700 p-2 rounded bg-black" />
                     ) : (
-                        <div className="h-16 w-32 bg-neutral-800 rounded mb-6 flex items-center justify-center text-xs text-neutral-500">No Logo</div>
+                        <div className="h-16 w-32 bg-neutral-800 rounded mb-6 flex items-center justify-center text-xs text-neutral-500 border border-neutral-800">No Logo</div>
                     )}
 
                     <Label className="mb-2 block">Foto Profil</Label>

@@ -77,8 +77,17 @@ export const db = {
         console.warn('Supabase fetch failed, falling back to local', e);
       }
     }
+    
+    // Merge Local Data with Mock Default Structure
+    // This ensures if a new field (like logo_url) is added to the app, 
+    // old local storage data gets the new field default instead of being undefined.
     const local = localStorage.getItem('pf_profile');
-    return local ? JSON.parse(local) : MOCK_DATA.profile;
+    if (local) {
+        const parsedLocal = JSON.parse(local);
+        return { ...MOCK_DATA.profile, ...parsedLocal };
+    }
+    
+    return MOCK_DATA.profile;
   },
 
   async updateProfile(profile: Profile): Promise<void> {
