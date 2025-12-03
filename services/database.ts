@@ -113,7 +113,13 @@ export const db = {
     }
 
     const { error } = await supabase.from('profiles').upsert(payload);
-    if (error) throw new Error(error.message);
+    if (error) {
+       // Deteksi error spesifik tentang kolom yang hilang
+       if (error.message.includes("Could not find the") && error.message.includes("column")) {
+          throw new Error("Skema Database Belum Update: Silahkan jalankan script SQL migrasi di Supabase untuk menambahkan kolom 'years_experience', 'brands_handled', atau 'logo_url'.");
+       }
+       throw new Error(error.message);
+    }
   },
 
   async getExperiences(): Promise<Experience[]> {
