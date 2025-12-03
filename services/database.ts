@@ -67,20 +67,27 @@ const MOCK_DATA = {
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 // Generic CRUD implementations
+// NOTE: Jika Supabase terkonfigurasi, kita TIDAK fallback ke local storage saat write operation
+// agar user tahu jika gagal menyimpan.
+
 export const db = {
   async getProfile(): Promise<Profile> {
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.from('profiles').select('*').single();
-        if (!error && data) return data;
+        if (error) {
+            // Jika errornya "PGRST116" artinya tidak ada baris (tabel kosong),
+            // kita bisa return default mock profile agar admin bisa mulai mengedit.
+            // Namun jika error lain, biarkan saja.
+            console.warn('Supabase fetch error:', error.message);
+        }
+        if (data) return data;
       } catch (e) {
-        console.warn('Supabase fetch failed, falling back to local', e);
+        console.warn('Supabase fetch failed', e);
       }
     }
     
     // Merge Local Data with Mock Default Structure
-    // This ensures if a new field (like logo_url) is added to the app, 
-    // old local storage data gets the new field default instead of being undefined.
     const local = localStorage.getItem('pf_profile');
     if (local) {
         const parsedLocal = JSON.parse(local);
@@ -92,8 +99,21 @@ export const db = {
 
   async updateProfile(profile: Profile): Promise<void> {
     if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.from('profiles').upsert(profile);
-      if (!error) return;
+      // Hilangkan ID saat update jika ID profile adalah string '1' (dari mock)
+      // karena Supabase mengharapkan UUID.
+      // Namun, karena 'upsert' butuh Primary Key, kita asumsikan
+      // tabel 'profiles' hanya punya 1 baris untuk portfolio single user.
+      // Jika ID tidak valid UUID, kita hapus dari payload dan biarkan Supabase generate/match.
+      
+      const payload = { ...profile };
+      // Validasi sederhana UUID: panjang 36 char
+      if (payload.id && payload.id.length < 32) {
+          delete (payload as any).id;
+      }
+
+      const { error } = await supabase.from('profiles').upsert(payload);
+      if (error) throw error; // Tampilkan error ke UI
+      return;
     }
     localStorage.setItem('pf_profile', JSON.stringify(profile));
   },
@@ -109,7 +129,8 @@ export const db = {
 
   async saveExperience(item: Experience): Promise<void> {
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('experiences').upsert(item);
+      const { error } = await supabase.from('experiences').upsert(item);
+      if (error) throw error;
       return;
     }
     const items = await db.getExperiences();
@@ -121,7 +142,8 @@ export const db = {
 
   async deleteExperience(id: string): Promise<void> {
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('experiences').delete().eq('id', id);
+      const { error } = await supabase.from('experiences').delete().eq('id', id);
+      if (error) throw error;
       return;
     }
     const items = await db.getExperiences();
@@ -139,7 +161,8 @@ export const db = {
 
   async saveSkill(item: Skill): Promise<void> {
     if (isSupabaseConfigured && supabase) {
-        await supabase.from('skills').upsert(item);
+        const { error } = await supabase.from('skills').upsert(item);
+        if (error) throw error;
         return;
     }
     const items = await db.getSkills();
@@ -151,7 +174,8 @@ export const db = {
 
   async deleteSkill(id: string): Promise<void> {
     if (isSupabaseConfigured && supabase) {
-        await supabase.from('skills').delete().eq('id', id);
+        const { error } = await supabase.from('skills').delete().eq('id', id);
+        if (error) throw error;
         return;
     }
     const items = await db.getSkills();
@@ -169,7 +193,8 @@ export const db = {
 
   async saveProject(item: Project): Promise<void> {
     if (isSupabaseConfigured && supabase) {
-        await supabase.from('projects').upsert(item);
+        const { error } = await supabase.from('projects').upsert(item);
+        if (error) throw error;
         return;
     }
     const items = await db.getProjects();
@@ -181,7 +206,8 @@ export const db = {
 
   async deleteProject(id: string): Promise<void> {
     if (isSupabaseConfigured && supabase) {
-        await supabase.from('projects').delete().eq('id', id);
+        const { error } = await supabase.from('projects').delete().eq('id', id);
+        if (error) throw error;
         return;
     }
     const items = await db.getProjects();
@@ -199,7 +225,8 @@ export const db = {
 
   async savePost(item: BlogPost): Promise<void> {
     if (isSupabaseConfigured && supabase) {
-        await supabase.from('posts').upsert(item);
+        const { error } = await supabase.from('posts').upsert(item);
+        if (error) throw error;
         return;
     }
     const items = await db.getPosts();
@@ -211,7 +238,8 @@ export const db = {
 
   async deletePost(id: string): Promise<void> {
     if (isSupabaseConfigured && supabase) {
-        await supabase.from('posts').delete().eq('id', id);
+        const { error } = await supabase.from('posts').delete().eq('id', id);
+        if (error) throw error;
         return;
     }
     const items = await db.getPosts();
@@ -233,18 +261,19 @@ export const db = {
 
         if (uploadError) {
           console.error("Supabase Storage Upload Error:", uploadError);
-          // If bucket doesn't exist or RLS fails, fallback to Base64
+          // If bucket doesn't exist or RLS fails, we throw to let user know
           throw uploadError; 
         }
 
         const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
         return data.publicUrl;
       } catch (err) {
-        console.warn("Falling back to Base64 storage due to Supabase error.");
+        console.warn("Supabase upload failed.");
+        throw err; // Re-throw to alert user
       }
     }
 
-    // Mock Mode / Fallback: Convert to Base64
+    // Mock Mode / Fallback: Convert to Base64 (Only if supabase not configured)
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -260,7 +289,7 @@ export const db = {
        console.warn("Supabase Auth failed:", error.message);
     }
 
-    // Hardcoded demo credentials fallback (allows demo access even if Supabase Auth is not set up)
+    // Hardcoded demo credentials fallback
     if (email === 'admin@admin.com') return true;
     
     return false;

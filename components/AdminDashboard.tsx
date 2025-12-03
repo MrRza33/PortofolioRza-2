@@ -19,6 +19,18 @@ interface AdminProps {
   onLogout: () => void;
 }
 
+// Helper untuk membuat UUID yang valid
+function generateUUID() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback untuk browser lama
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
+
 export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
   const [activeTab, setActiveTab] = useState<Tab>('profile');
   const [isEditing, setIsEditing] = useState<string | null>(null); // ID of item being edited
@@ -43,11 +55,14 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
   };
 
   const startNew = (type: Tab) => {
+    // PENTING: Gunakan UUID valid, bukan Date.now()
+    const newId = generateUUID();
+    
     const emptyModels: any = {
-      experience: { id: Date.now().toString(), role: '', company: '', period: '', description: '', type: 'work' },
-      skills: { id: Date.now().toString(), name: '', category: 'frontend', level: 50 },
-      projects: { id: Date.now().toString(), title: '', description: '', image_url: '', tags: [], category: 'Web', demo_url: '', repo_url: '' },
-      blog: { id: Date.now().toString(), title: '', excerpt: '', content: '', cover_image: '', created_at: new Date().toISOString(), category: 'General' }
+      experience: { id: newId, role: '', company: '', period: '', description: '', type: 'work' },
+      skills: { id: newId, name: '', category: 'frontend', level: 50 },
+      projects: { id: newId, title: '', description: '', image_url: '', tags: [], category: 'Web', demo_url: '', repo_url: '' },
+      blog: { id: newId, title: '', excerpt: '', content: '', cover_image: '', created_at: new Date().toISOString(), category: 'General' }
     };
     setFormData(emptyModels[type]);
     setIsEditing('new');
@@ -65,9 +80,9 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
       refreshData();
       setIsEditing(null);
       setFormData(null);
-    } catch (e) {
-      alert('Gagal menyimpan data');
+    } catch (e: any) {
       console.error(e);
+      alert(`Gagal menyimpan data: ${e.message || e.error_description || JSON.stringify(e)}`);
     }
   };
 
@@ -79,8 +94,9 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
       else if (activeTab === 'projects') await db.deleteProject(id);
       else if (activeTab === 'blog') await db.deletePost(id);
       refreshData();
-    } catch (e) {
-      alert('Gagal menghapus');
+    } catch (e: any) {
+      console.error(e);
+      alert(`Gagal menghapus: ${e.message || JSON.stringify(e)}`);
     }
   };
 
