@@ -109,9 +109,10 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
     try {
         const url = await db.uploadFile(file);
         setFormData((prev: any) => ({ ...prev, [fieldKey]: url }));
-    } catch (err) {
-        console.error(err);
-        alert('Gagal mengupload file');
+    } catch (err: any) {
+        console.error("Upload failed details:", err);
+        // Tampilkan pesan error yang lebih spesifik kepada user
+        alert(`Gagal mengupload file: ${err.message || "Periksa konfigurasi Storage Bucket di Supabase"}`);
     } finally {
         setUploading(false);
     }
