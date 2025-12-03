@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { Profile, Experience, Skill, Project, BlogPost } from '../types';
+import { Profile, Experience, Skill, Project, BlogPost, Comment } from '../types';
 
 // Supabase Configuration from User Input
 const SUPABASE_URL = 'https://iqxushprpibrpuuzmooj.supabase.co';
@@ -14,7 +14,7 @@ export const supabase = isSupabaseConfigured
 // Mock Data for Initial Load (Only used if database is empty)
 const MOCK_DATA = {
   profile: {
-    id: '1',
+    id: 'd9b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d8',
     name: 'Alex Pradana',
     tagline: 'Senior Fullstack Engineer & UI Designer',
     bio: 'Saya adalah pengembang web yang berdedikasi dengan spesialisasi dalam membangun pengalaman digital yang luar biasa. Saat ini fokus pada React, TypeScript, dan desain sistem yang scalable. Saya suka memecahkan masalah kompleks dan mengubahnya menjadi antarmuka yang sederhana dan indah.',
@@ -27,58 +27,72 @@ const MOCK_DATA = {
     linkedin: 'https://linkedin.com'
   },
   experience: [
-    { id: '1', role: 'Senior Frontend Engineer', company: 'Tech Unicorn Indonesia', period: '2022 - Sekarang', description: 'Memimpin tim frontend beranggotakan 8 orang, menginisiasi migrasi ke Next.js App Router, dan meningkatkan skor Core Web Vitals sebesar 40%.', type: 'work' },
-    { id: '2', role: 'Software Engineer', company: 'Global Digital Agency', period: '2020 - 2022', description: 'Mengembangkan aplikasi web responsif untuk klien internasional. Implementasi design system menggunakan Tailwind CSS dan Storybook.', type: 'work' },
-    { id: '3', role: 'Junior Web Developer', company: 'StartUp Studio', period: '2019 - 2020', description: 'Bekerja pada pengembangan fitur backend menggunakan Node.js dan Express, serta integrasi API pihak ketiga.', type: 'work' },
-    { id: '4', role: 'Sarjana Teknik Informatika', company: 'Institut Teknologi Bandung', period: '2015 - 2019', description: 'Lulus dengan predikat Cum Laude (GPA 3.8). Ketua Himpunan Mahasiswa Informatika 2018.', type: 'education' },
-    { id: '5', role: 'Google Developer Certification', company: 'Google Developers', period: '2023', description: 'Associate Android Developer Certification & Google Cloud Professional Data Engineer.', type: 'education' }
+    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', role: 'Senior Frontend Engineer', company: 'Tech Unicorn Indonesia', period: '2022 - Sekarang', description: 'Memimpin tim frontend beranggotakan 8 orang, menginisiasi migrasi ke Next.js App Router, dan meningkatkan skor Core Web Vitals sebesar 40%.', type: 'work' },
+    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', role: 'Software Engineer', company: 'Global Digital Agency', period: '2020 - 2022', description: 'Mengembangkan aplikasi web responsif untuk klien internasional. Implementasi design system menggunakan Tailwind CSS dan Storybook.', type: 'work' },
+    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', role: 'Junior Web Developer', company: 'StartUp Studio', period: '2019 - 2020', description: 'Bekerja pada pengembangan fitur backend menggunakan Node.js dan Express, serta integrasi API pihak ketiga.', type: 'work' },
+    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', role: 'Sarjana Teknik Informatika', company: 'Institut Teknologi Bandung', period: '2015 - 2019', description: 'Lulus dengan predikat Cum Laude (GPA 3.8). Ketua Himpunan Mahasiswa Informatika 2018.', type: 'education' },
+    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d5', role: 'Google Developer Certification', company: 'Google Developers', period: '2023', description: 'Associate Android Developer Certification & Google Cloud Professional Data Engineer.', type: 'education' }
   ],
   skills: [
-    { id: '1', name: 'React & Next.js', category: 'frontend', level: 95 },
-    { id: '2', name: 'TypeScript', category: 'frontend', level: 90 },
-    { id: '3', name: 'Tailwind CSS', category: 'frontend', level: 95 },
-    { id: '4', name: 'Framer Motion', category: 'frontend', level: 85 },
-    { id: '5', name: 'Node.js', category: 'backend', level: 85 },
-    { id: '6', name: 'PostgreSQL', category: 'backend', level: 80 },
-    { id: '7', name: 'Supabase', category: 'backend', level: 85 },
-    { id: '8', name: 'Docker', category: 'tools', level: 75 },
-    { id: '9', name: 'Figma', category: 'tools', level: 85 },
-    { id: '10', name: 'Git & CI/CD', category: 'tools', level: 90 },
-    { id: '11', name: 'Team Leadership', category: 'soft', level: 85 },
-    { id: '12', name: 'Public Speaking', category: 'soft', level: 80 }
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', name: 'React & Next.js', category: 'frontend', level: 95 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', name: 'TypeScript', category: 'frontend', level: 90 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', name: 'Tailwind CSS', category: 'frontend', level: 95 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', name: 'Framer Motion', category: 'frontend', level: 85 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d5', name: 'Node.js', category: 'backend', level: 85 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d6', name: 'PostgreSQL', category: 'backend', level: 80 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d7', name: 'Supabase', category: 'backend', level: 85 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d8', name: 'Docker', category: 'tools', level: 75 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d9', name: 'Figma', category: 'tools', level: 85 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d0', name: 'Git & CI/CD', category: 'tools', level: 90 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7da', name: 'Team Leadership', category: 'soft', level: 85 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7db', name: 'Public Speaking', category: 'soft', level: 80 }
   ],
   projects: [
-    { id: '1', title: 'E-Commerce Dashboard', description: 'Dashboard analitik real-time untuk platform e-commerce menggunakan Next.js, Tremor, dan Supabase. Fitur visualisasi data penjualan harian dan manajemen inventaris.', image_url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80', tags: ['React', 'Next.js', 'Supabase'], category: 'Web App', demo_url: '#', repo_url: '#' },
-    { id: '2', title: 'Travel Booking App', description: 'Aplikasi mobile cross-platform untuk pemesanan tiket perjalanan dan hotel dengan integrasi payment gateway Midtrans.', image_url: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80', tags: ['React Native', 'Node.js', 'Redux'], category: 'Mobile', demo_url: '#', repo_url: '#' },
-    { id: '3', title: 'AI Content Generator', description: 'Platform SaaS untuk generate konten marketing, caption sosmed, dan artikel blog menggunakan Google Gemini API.', image_url: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80', tags: ['AI', 'Python', 'FastAPI', 'Gemini'], category: 'AI', demo_url: '#', repo_url: '#' },
-    { id: '4', title: 'Health Tracker', description: 'Aplikasi pelacak kesehatan pribadi yang terhubung dengan smartwatch untuk memantau detak jantung dan kualitas tidur.', image_url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80', tags: ['Flutter', 'Firebase'], category: 'Mobile', demo_url: '#', repo_url: '#' },
-    { id: '5', title: 'Finance Management', description: 'Web app manajemen keuangan pribadi dengan fitur budgeting, tracking pengeluaran, dan export laporan bulanan.', image_url: 'https://images.unsplash.com/photo-1554224155-98406856d03f?auto=format&fit=crop&w=800&q=80', tags: ['Vue.js', 'Laravel', 'MySQL'], category: 'Web App', demo_url: '#', repo_url: '#' },
-    { id: '6', title: 'Smart Home Hub', description: 'Interface kontrol rumah pintar berbasis IoT untuk mengatur lampu, suhu, dan keamanan rumah secara terpusat.', image_url: 'https://images.unsplash.com/photo-1558002038-109177381792?auto=format&fit=crop&w=800&q=80', tags: ['IoT', 'React', 'MQTT'], category: 'IoT', demo_url: '#', repo_url: '#' }
+    { id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', title: 'E-Commerce Dashboard', description: 'Dashboard analitik real-time untuk platform e-commerce menggunakan Next.js, Tremor, dan Supabase. Fitur visualisasi data penjualan harian dan manajemen inventaris.', image_url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80', tags: ['React', 'Next.js', 'Supabase'], category: 'Web App', demo_url: '#', repo_url: '#' },
+    { id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', title: 'Travel Booking App', description: 'Aplikasi mobile cross-platform untuk pemesanan tiket perjalanan dan hotel dengan integrasi payment gateway Midtrans.', image_url: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80', tags: ['React Native', 'Node.js', 'Redux'], category: 'Mobile', demo_url: '#', repo_url: '#' },
+    { id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', title: 'AI Content Generator', description: 'Platform SaaS untuk generate konten marketing, caption sosmed, dan artikel blog menggunakan Google Gemini API.', image_url: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80', tags: ['AI', 'Python', 'FastAPI', 'Gemini'], category: 'AI', demo_url: '#', repo_url: '#' },
+    { id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', title: 'Health Tracker', description: 'Aplikasi pelacak kesehatan pribadi yang terhubung dengan smartwatch untuk memantau detak jantung dan kualitas tidur.', image_url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80', tags: ['Flutter', 'Firebase'], category: 'Mobile', demo_url: '#', repo_url: '#' },
+    { id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d5', title: 'Finance Management', description: 'Web app manajemen keuangan pribadi dengan fitur budgeting, tracking pengeluaran, dan export laporan bulanan.', image_url: 'https://images.unsplash.com/photo-1554224155-98406856d03f?auto=format&fit=crop&w=800&q=80', tags: ['Vue.js', 'Laravel', 'MySQL'], category: 'Web App', demo_url: '#', repo_url: '#' },
+    { id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d6', title: 'Smart Home Hub', description: 'Interface kontrol rumah pintar berbasis IoT untuk mengatur lampu, suhu, dan keamanan rumah secara terpusat.', image_url: 'https://images.unsplash.com/photo-1558002038-109177381792?auto=format&fit=crop&w=800&q=80', tags: ['IoT', 'React', 'MQTT'], category: 'IoT', demo_url: '#', repo_url: '#' }
   ],
   posts: [
-    { id: '1', title: 'Membangun Arsitektur Microfrontends', excerpt: 'Panduan lengkap strategi memecah monolith frontend menjadi microfrontends yang scalable dan mudah dipelihara oleh tim besar.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1504639725590-34d0984388bd?auto=format&fit=crop&w=800&q=80', created_at: '2023-10-15', category: 'Engineering' },
-    { id: '2', title: 'Masa Depan AI dalam Web Development', excerpt: 'Bagaimana Artificial Intelligence dan LLM mengubah cara kita menulis kode, mendesain antarmuka, dan mengoptimalkan UX.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=80', created_at: '2023-11-20', category: 'AI' },
-    { id: '3', title: 'Tutorial React Server Components', excerpt: 'Mendalami konsep Server Components pada React 18 dan Next.js 13+ untuk performa aplikasi yang lebih baik.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=800&q=80', created_at: '2024-01-10', category: 'Tutorial' },
-    { id: '4', title: 'Optimasi Core Web Vitals 2024', excerpt: 'Tips dan trik terbaru untuk meningkatkan skor INP (Interaction to Next Paint) dan LCP website Anda.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80', created_at: '2024-02-05', category: 'Performance' }
+    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', title: 'Membangun Arsitektur Microfrontends', excerpt: 'Panduan lengkap strategi memecah monolith frontend menjadi microfrontends yang scalable dan mudah dipelihara oleh tim besar.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1504639725590-34d0984388bd?auto=format&fit=crop&w=800&q=80', created_at: '2023-10-15', category: 'Engineering' },
+    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', title: 'Masa Depan AI dalam Web Development', excerpt: 'Bagaimana Artificial Intelligence dan LLM mengubah cara kita menulis kode, mendesain antarmuka, dan mengoptimalkan UX.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=80', created_at: '2023-11-20', category: 'AI' },
+    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', title: 'Tutorial React Server Components', excerpt: 'Mendalami konsep Server Components pada React 18 dan Next.js 13+ untuk performa aplikasi yang lebih baik.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=800&q=80', created_at: '2024-01-10', category: 'Tutorial' },
+    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', title: 'Optimasi Core Web Vitals 2024', excerpt: 'Tips dan trik terbaru untuk meningkatkan skor INP (Interaction to Next Paint) dan LCP website Anda.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80', created_at: '2024-02-05', category: 'Performance' }
   ]
 };
 
 // Generic CRUD implementations
-// NOTE: KITA HANYA MENGGUNAKAN SUPABASE. 
-// Login hanya berhasil jika kredensial Supabase valid.
+// Helper to remove invalid ID "1" if present
+const sanitizePayload = (item: any) => {
+  const payload = { ...item };
+  if (payload.id === '1' || payload.id.length < 10) {
+    delete payload.id;
+  }
+  return payload;
+};
+
+// Helper to merge default local data with fetched data if fields are missing (e.g. logo_url)
+const mergeWithDefaults = (fetchedProfile: any) => {
+    return { ...MOCK_DATA.profile, ...fetchedProfile };
+};
+
 
 export const db = {
   async getProfile(): Promise<Profile> {
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.from('profiles').select('*').single();
-        if (data) return data;
-        // Jika belum ada profile di DB, return MOCK tapi jangan save dulu
+        if (data) return mergeWithDefaults(data);
       } catch (e) {
         console.warn('Supabase fetch failed', e);
       }
     }
-    // Return MOCK_DATA agar tampilan tidak rusak saat pertama kali load
+    // Check Local Storage
+    const local = localStorage.getItem('profile');
+    if (local) return mergeWithDefaults(JSON.parse(local));
+    
     return MOCK_DATA.profile;
   },
 
@@ -86,8 +100,15 @@ export const db = {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
 
     const payload = { ...profile };
-    // Remove invalid ID if necessary or ensure it matches DB
-    if (payload.id && payload.id.length < 32) delete (payload as any).id;
+    // Smart ID handling: If ID is mock/short, try to find existing profile in DB to get real ID
+    if (payload.id && payload.id.length < 32) {
+       const { data: existing } = await supabase.from('profiles').select('id').limit(1).single();
+       if (existing) {
+         payload.id = existing.id;
+       } else {
+         delete (payload as any).id;
+       }
+    }
 
     const { error } = await supabase.from('profiles').upsert(payload);
     if (error) throw new Error(error.message);
@@ -103,7 +124,7 @@ export const db = {
 
   async saveExperience(item: Experience): Promise<void> {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
-    const { error } = await supabase.from('experiences').upsert(item);
+    const { error } = await supabase.from('experiences').upsert(sanitizePayload(item));
     if (error) throw new Error(error.message);
   },
 
@@ -123,7 +144,7 @@ export const db = {
 
   async saveSkill(item: Skill): Promise<void> {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
-    const { error } = await supabase.from('skills').upsert(item);
+    const { error } = await supabase.from('skills').upsert(sanitizePayload(item));
     if (error) throw new Error(error.message);
   },
 
@@ -143,7 +164,7 @@ export const db = {
 
   async saveProject(item: Project): Promise<void> {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
-    const { error } = await supabase.from('projects').upsert(item);
+    const { error } = await supabase.from('projects').upsert(sanitizePayload(item));
     if (error) throw new Error(error.message);
   },
 
@@ -163,13 +184,35 @@ export const db = {
 
   async savePost(item: BlogPost): Promise<void> {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
-    const { error } = await supabase.from('posts').upsert(item);
+    const { error } = await supabase.from('posts').upsert(sanitizePayload(item));
     if (error) throw new Error(error.message);
   },
 
   async deletePost(id: string): Promise<void> {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
     const { error } = await supabase.from('posts').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  },
+
+  // COMMENTS
+  async getComments(postId: string): Promise<Comment[]> {
+    if (isSupabaseConfigured && supabase) {
+        // Assume table 'comments' exists
+        const { data, error } = await supabase
+            .from('comments')
+            .select('*')
+            .eq('post_id', postId)
+            .order('created_at', { ascending: false });
+        
+        if (data) return data as Comment[];
+        if (error) console.warn("Comments fetch error (Table might not exist yet):", error.message);
+    }
+    return [];
+  },
+
+  async saveComment(comment: Omit<Comment, 'id' | 'created_at'>): Promise<void> {
+    if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+    const { error } = await supabase.from('comments').insert(comment);
     if (error) throw new Error(error.message);
   },
 

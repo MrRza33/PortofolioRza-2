@@ -51,6 +51,14 @@ export interface BlogPost {
   category: string;
 }
 
+export interface Comment {
+  id: string;
+  post_id: string;
+  user_name: string;
+  content: string;
+  created_at: string;
+}
+
 export interface UserSession {
   user: {
     email: string;

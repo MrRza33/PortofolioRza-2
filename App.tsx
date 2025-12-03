@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate, useLocation, Link, useNavigate } from 'react-router-dom';
 import { db } from './services/database';
-import { Hero, About, ExperienceSection, Skills, Projects, Blog } from './components/PublicSections';
+import { Hero, About, ExperienceSection, Skills, ProjectsTeaser, BlogTeaser, ProjectsPage, BlogPage, BlogDetail, ContactPage } from './components/PublicSections';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Profile, Experience, Skill, Project, BlogPost } from './types';
 import { Button, Input, Card } from './components/ui';
@@ -11,7 +11,9 @@ import { Loader2, Download, Home } from 'lucide-react';
 const Navbar = ({ profile }: { profile?: Profile | null }) => {
     const [scrolled, setScrolled] = useState(false);
     const location = useLocation();
+    const navigate = useNavigate();
     const isLoginPage = location.pathname === '/login';
+    const isHomePage = location.pathname === '/';
 
     useEffect(() => {
         const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -19,11 +21,28 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // Hide navbar on admin dashboard (but show on login for navigation back)
+    // Function to handle scrolling to sections
+    const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+        e.preventDefault();
+        if (isHomePage) {
+            // If on home page, smooth scroll
+            const element = document.getElementById(id);
+            if (element) element.scrollIntoView({ behavior: 'smooth' });
+        } else {
+            // If on other pages, navigate to home then scroll
+            navigate('/');
+            setTimeout(() => {
+                const element = document.getElementById(id);
+                if (element) element.scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+    };
+
+    // Hide navbar on admin dashboard
     if (location.pathname.includes('admin')) return null;
 
     return (
-        <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || isLoginPage ? 'bg-black/90 backdrop-blur-md border-b border-neutral-900 py-3' : 'bg-transparent py-5'}`}>
+        <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || !isHomePage ? 'bg-black/90 backdrop-blur-md border-b border-neutral-900 py-3' : 'bg-transparent py-5'}`}>
             <div className="container mx-auto px-6 flex justify-between items-center">
                 <Link to="/" className="text-xl font-bold tracking-tighter text-white flex items-center gap-2">
                     {profile?.logo_url ? (
@@ -41,20 +60,33 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
                     </Link>
                 ) : (
                     <>
-                        <nav className="hidden md:flex gap-8">
-                            {['About', 'Experience', 'Skills', 'Projects', 'Blog'].map((item) => (
+                        <nav className="hidden md:flex gap-8 items-center">
+                            {/* Scroll Links for Home Sections */}
+                            {['About', 'Experience', 'Skills'].map((item) => (
                                 <a 
                                     key={item} 
-                                    href={`#${item.toLowerCase()}`} 
-                                    className="text-sm font-medium text-neutral-300 hover:text-blue-400 transition-colors"
+                                    href={`#${item.toLowerCase()}`}
+                                    onClick={(e) => handleNavClick(e, item.toLowerCase())}
+                                    className="text-sm font-medium text-neutral-300 hover:text-blue-400 transition-colors cursor-pointer"
                                 >
                                     {item}
                                 </a>
                             ))}
+                            
+                            {/* Direct Page Links */}
+                            <Link to="/projects" className={`text-sm font-medium transition-colors ${location.pathname === '/projects' ? 'text-blue-400' : 'text-neutral-300 hover:text-blue-400'}`}>Projects</Link>
+                            <Link to="/blog" className={`text-sm font-medium transition-colors ${location.pathname.includes('/blog') ? 'text-blue-400' : 'text-neutral-300 hover:text-blue-400'}`}>Blog</Link>
+                            <Link to="/contact" className={`text-sm font-medium transition-colors ${location.pathname === '/contact' ? 'text-blue-400' : 'text-neutral-300 hover:text-blue-400'}`}>Contact</Link>
                         </nav>
-                        <Link to="/login">
-                            <Button variant="outline" size="sm" className="hidden md:flex border-neutral-700 hover:border-blue-500 hover:text-blue-400">Admin</Button>
-                        </Link>
+                        
+                        <div className="flex gap-4 items-center">
+                             <Link to="/contact" className="md:hidden">
+                                <Button size="sm" variant="primary">Contact</Button>
+                             </Link>
+                             <Link to="/login">
+                                <Button variant="outline" size="sm" className="hidden md:flex border-neutral-700 hover:border-blue-500 hover:text-blue-400">Admin</Button>
+                             </Link>
+                        </div>
                     </>
                 )}
             </div>
@@ -68,7 +100,15 @@ const Footer = () => {
     if (location.pathname.includes('admin')) return null;
     return (
         <footer className="py-8 border-t border-neutral-900 bg-black text-center text-neutral-500 text-sm">
-            <p>&copy; {new Date().getFullYear()} Alex Pradana. Built with React & Tailwind.</p>
+            <div className="container mx-auto px-6">
+                 <div className="flex justify-center gap-6 mb-4">
+                     <Link to="/" className="hover:text-white">Home</Link>
+                     <Link to="/projects" className="hover:text-white">Projects</Link>
+                     <Link to="/blog" className="hover:text-white">Blog</Link>
+                     <Link to="/contact" className="hover:text-white">Contact</Link>
+                 </div>
+                 <p>&copy; {new Date().getFullYear()} Alex Pradana. Built with React & Tailwind.</p>
+            </div>
         </footer>
     );
 };
@@ -139,24 +179,6 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
     );
 };
 
-// --- WRAPPER FOR PROJECTS TO INJECT PORTFOLIO URL ---
-const ProjectsWithDownload = ({ projects, portfolioUrl }: { projects: Project[], portfolioUrl?: string }) => {
-    return (
-        <div className="relative">
-             <Projects projects={projects} />
-             {portfolioUrl && (
-                 <div className="container mx-auto px-6 text-center -mt-16 pb-24 relative z-10">
-                    <a href={portfolioUrl} target="_blank" rel="noreferrer">
-                        <Button size="lg" className="gap-2 shadow-xl shadow-blue-500/20 bg-blue-600 hover:bg-blue-500 border-none">
-                            <Download className="w-4 h-4" /> Download Portofolio PDF
-                        </Button>
-                    </a>
-                 </div>
-             )}
-        </div>
-    )
-}
-
 export default function App() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -222,16 +244,36 @@ export default function App() {
             <div className="bg-black min-h-screen text-neutral-200 font-sans selection:bg-blue-500/30 selection:text-blue-200">
                 <Navbar profile={data.profile} />
                 <Routes>
+                    {/* Home Route: Hero, About, Experience, Skills */}
                     <Route path="/" element={
                         <main>
                             <Hero profile={data.profile} />
                             <About profile={data.profile} />
                             <ExperienceSection experiences={data.experience} />
                             <Skills skills={data.skills} />
-                            <ProjectsWithDownload projects={data.projects} portfolioUrl={data.profile.portfolio_url} />
-                            <Blog posts={data.posts} />
+                            <ProjectsTeaser projects={data.projects} />
+                            <BlogTeaser posts={data.posts} />
                         </main>
                     } />
+                    
+                    {/* Dedicated Pages */}
+                    <Route path="/projects" element={
+                        <ProjectsPage projects={data.projects} portfolioUrl={data.profile.portfolio_url} />
+                    } />
+                    
+                    <Route path="/blog" element={
+                        <BlogPage posts={data.posts} />
+                    } />
+
+                    <Route path="/blog/:id" element={
+                        <BlogDetail posts={data.posts} />
+                    } />
+
+                    <Route path="/contact" element={
+                        <ContactPage />
+                    } />
+
+                    {/* Admin Routes */}
                     <Route path="/login" element={
                         isAuthenticated ? <Navigate to="/admin" /> : <Login onLogin={() => setIsAuthenticated(true)} />
                     } />
