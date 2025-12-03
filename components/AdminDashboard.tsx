@@ -45,7 +45,9 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
         const fullProfile = {
             ...item,
             logo_url: item.logo_url || '',
-            portfolio_url: item.portfolio_url || ''
+            portfolio_url: item.portfolio_url || '',
+            years_experience: item.years_experience || '5+',
+            brands_handled: item.brands_handled || '12+'
         };
         setFormData(fullProfile);
         setIsEditing(item.id);
@@ -290,6 +292,18 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
 
                     <Label className="mb-2 block">Foto Profil</Label>
                     <img src={data.profile.avatar_url} alt="Avatar" className="w-32 h-32 rounded-full object-cover mb-4 border-2 border-neutral-700 bg-neutral-800" />
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <Label>Pengalaman</Label>
+                            <p className="text-lg text-white">{data.profile.years_experience || '5+'}</p>
+                        </div>
+                        <div>
+                            <Label>Brand Dihandle</Label>
+                            <p className="text-lg text-white">{data.profile.brands_handled || '12+'}</p>
+                        </div>
+                    </div>
+
                     <Label>Kontak</Label>
                     <p className="text-sm text-neutral-400">{data.profile.email}</p>
                 </div>

@@ -53,7 +53,7 @@ export const Hero = ({ profile }: { profile: Profile }) => {
           className="flex-1 text-center md:text-left"
         >
           <motion.div variants={fadeInUp} className="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-blue-400 uppercase bg-blue-500/10 rounded-full">
-            Portfolio Resmi
+            Introduction by me
           </motion.div>
           <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
             Halo, saya <br />
@@ -127,12 +127,12 @@ export const About = ({ profile }: { profile: Profile }) => {
                   <p>{profile.bio}</p>
                   <div className="pt-4 grid grid-cols-2 gap-4">
                     <div className="p-4 bg-black/50 rounded-lg border border-neutral-800 text-center">
-                       <h3 className="text-2xl font-bold text-blue-400">5+</h3>
+                       <h3 className="text-2xl font-bold text-blue-400">{profile.years_experience || '5+'}</h3>
                        <p className="text-sm text-neutral-500">Tahun Pengalaman</p>
                     </div>
                     <div className="p-4 bg-black/50 rounded-lg border border-neutral-800 text-center">
-                       <h3 className="text-2xl font-bold text-blue-400">30+</h3>
-                       <p className="text-sm text-neutral-500">Proyek Selesai</p>
+                       <h3 className="text-2xl font-bold text-blue-400">{profile.brands_handled || '12+'}</h3>
+                       <p className="text-sm text-neutral-500">Brand pernah dihandle</p>
                     </div>
                   </div>
                </div>
@@ -190,10 +190,8 @@ export const ExperienceSection = ({ experiences }: { experiences: Experience[] }
 
 // --- SKILLS SECTION ---
 export const Skills = ({ skills }: { skills: Skill[] }) => {
-  // Extract unique categories dynamically
   const uniqueCategories = Array.from(new Set(skills.map(s => s.category)));
 
-  // Helper to guess icon based on category name
   const getCategoryIcon = (category: string) => {
       const lower = category.toLowerCase();
       if (lower.includes('front')) return Layout;
@@ -265,9 +263,9 @@ export const Skills = ({ skills }: { skills: Skill[] }) => {
   );
 };
 
-// --- PROJECTS TEASER (FOR HOME) ---
+// --- PROJECTS TEASER (FOR HOME - BENTO STYLE) ---
 export const ProjectsTeaser = ({ projects }: { projects: Project[] }) => {
-  const displayProjects = projects.slice(0, 3); // Limit to 3 items
+  const displayProjects = projects.slice(0, 3); // Max 3 items
   
   return (
     <section className="py-24 bg-black">
@@ -277,34 +275,51 @@ export const ProjectsTeaser = ({ projects }: { projects: Project[] }) => {
             <p className="text-neutral-400">Beberapa karya pilihan yang telah saya kerjakan.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-             {displayProjects.map((project, idx) => (
-                <motion.div
-                   key={project.id}
-                   initial={{ opacity: 0, y: 20 }}
-                   whileInView={{ opacity: 1, y: 0 }}
-                   viewport={{ once: true }}
-                   transition={{ delay: idx * 0.1 }}
-                >
-                   <Card className="h-full overflow-hidden border-neutral-800 bg-neutral-900/50 hover:border-blue-500/30 transition-all flex flex-col group">
-                      <div className="relative h-48 overflow-hidden">
-                         <img src={project.image_url} alt={project.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
-                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                            <span className="text-white font-medium border border-white/30 px-4 py-2 rounded-full backdrop-blur-sm">Lihat Detail</span>
-                         </div>
-                      </div>
-                      <div className="p-6 flex flex-col flex-1">
-                         <h3 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400 transition-colors">{project.title}</h3>
-                         <p className="text-neutral-400 text-sm mb-4 line-clamp-3">{project.description}</p>
-                         <div className="mt-auto flex flex-wrap gap-2">
-                             {project.tags.slice(0,3).map(tag => (
-                               <span key={tag} className="text-xs px-2 py-1 bg-neutral-800 text-neutral-400 rounded">{tag}</span>
-                             ))}
-                         </div>
-                      </div>
-                   </Card>
-                </motion.div>
-             ))}
+          {/* Bento Grid Layout */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 mb-12 auto-rows-[300px]">
+             {displayProjects.map((project, idx) => {
+                // Determine span classes based on index
+                // Index 0: Large (2 cols, 2 rows)
+                // Index 1, 2: Standard (2 cols, 1 row)
+                let spanClass = "";
+                if (idx === 0) spanClass = "md:col-span-2 md:row-span-2";
+                else spanClass = "md:col-span-2 md:row-span-1";
+
+                return (
+                    <motion.div
+                       key={project.id}
+                       initial={{ opacity: 0, y: 20 }}
+                       whileInView={{ opacity: 1, y: 0 }}
+                       viewport={{ once: true }}
+                       transition={{ delay: idx * 0.1 }}
+                       className={`group relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 ${spanClass}`}
+                    >
+                       <img 
+                            src={project.image_url} 
+                            alt={project.title} 
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                       />
+                       
+                       {/* Overlay Gradient */}
+                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300" />
+                       
+                       {/* Content Content Slide Up */}
+                       <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-2 md:translate-y-6 group-hover:translate-y-0 transition-transform duration-300">
+                           <div className="text-blue-400 text-xs font-bold uppercase tracking-wider mb-2">{project.category}</div>
+                           <h3 className="text-2xl font-bold text-white mb-2">{project.title}</h3>
+                           <p className="text-neutral-300 text-sm line-clamp-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 delay-75">
+                               {project.description}
+                           </p>
+                           
+                           <div className="mt-4 flex gap-3 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 delay-100">
+                                <Link to="/projects" className="inline-flex items-center text-sm font-medium text-white hover:text-blue-400">
+                                    Lihat Detail <ArrowRight className="w-4 h-4 ml-1" />
+                                </Link>
+                           </div>
+                       </div>
+                    </motion.div>
+                );
+             })}
           </div>
 
           <div className="text-center">
@@ -369,7 +384,7 @@ export const BlogTeaser = ({ posts }: { posts: BlogPost[] }) => {
   );
 };
 
-// --- PROJECTS PAGE ---
+// --- PROJECTS PAGE (MOSAIC/MASONRY FEEL) ---
 export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], portfolioUrl?: string }) => {
   const [filter, setFilter] = useState('all');
   const categories = ['all', ...Array.from(new Set(projects.map(p => p.category)))];
@@ -414,65 +429,75 @@ export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], 
             ))}
         </div>
 
+        {/* Mosaic Grid Layout */}
         <motion.div 
            layout
-           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+           className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]"
         >
           <AnimatePresence mode='popLayout'>
-            {filteredProjects.map((project) => (
-              <motion.div
-                key={project.id}
-                layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                className="group relative"
-              >
-                <Card className="h-full overflow-hidden border-neutral-800 bg-neutral-900/80 hover:border-blue-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 flex flex-col">
-                  <div className="relative h-48 overflow-hidden">
+            {filteredProjects.map((project, idx) => {
+              // Creating a pattern: Every 4th item (0, 4, 8) spans 2 columns
+              // This creates a nice irregular grid
+              const isLarge = idx % 4 === 0 || idx % 4 === 3; // Example: 0 (big), 1, 2, 3 (big)
+              const spanClass = (idx % 4 === 0) ? "md:col-span-2" : "";
+
+              return (
+                <motion.div
+                  key={project.id}
+                  layout
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className={`group relative rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 hover:border-blue-500/50 transition-all duration-300 ${spanClass}`}
+                >
                     <img 
                       src={project.image_url} 
                       alt={project.title} 
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
-                    <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                      {project.demo_url && (
-                        <a href={project.demo_url} target="_blank" rel="noreferrer" className="p-2 bg-blue-600 rounded-full text-white hover:bg-blue-500 transition-transform hover:scale-110">
-                          <ExternalLink className="w-5 h-5" />
-                        </a>
-                      )}
-                      {project.repo_url && (
-                        <a href={project.repo_url} target="_blank" rel="noreferrer" className="p-2 bg-neutral-800 rounded-full text-white hover:bg-neutral-700 transition-transform hover:scale-110">
-                          <Github className="w-5 h-5" />
-                        </a>
-                      )}
+                    
+                    {/* Dark Overlay on Hover */}
+                    <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center p-8 text-center">
+                        <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                            <span className="text-blue-400 text-sm font-bold uppercase tracking-wider mb-2 block">{project.category}</span>
+                            <h3 className="text-2xl font-bold text-white mb-4">{project.title}</h3>
+                            <p className="text-neutral-300 text-sm mb-6 line-clamp-3">{project.description}</p>
+                            
+                            <div className="flex justify-center gap-4">
+                                {project.demo_url && (
+                                    <a href={project.demo_url} target="_blank" rel="noreferrer" className="p-3 bg-blue-600 rounded-full text-white hover:bg-blue-500 transition-transform hover:scale-110">
+                                        <ExternalLink className="w-5 h-5" />
+                                    </a>
+                                )}
+                                {project.repo_url && (
+                                    <a href={project.repo_url} target="_blank" rel="noreferrer" className="p-3 bg-neutral-800 rounded-full text-white hover:bg-neutral-700 transition-transform hover:scale-110">
+                                        <Github className="w-5 h-5" />
+                                    </a>
+                                )}
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 justify-center mt-6">
+                                {project.tags.slice(0, 3).map(tag => (
+                                    <span key={tag} className="text-xs px-2 py-1 bg-white/10 text-white rounded-md backdrop-blur-sm">
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                  <div className="p-6 flex flex-col flex-1">
-                    <div className="flex justify-between items-start mb-2">
-                       <h3 className="font-bold text-xl text-white group-hover:text-blue-400 transition-colors">{project.title}</h3>
-                    </div>
-                    <p className="text-neutral-400 text-sm mb-4 line-clamp-3">{project.description}</p>
-                    <div className="flex flex-wrap gap-2 mt-auto">
-                      {project.tags.map(tag => (
-                        <span key={tag} className="text-xs px-2 py-1 bg-neutral-800 text-blue-300 rounded border border-blue-500/10">
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </Card>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
         </motion.div>
 
         {portfolioUrl && (
             <div className="mt-20 text-center">
-                 <div className="p-8 bg-neutral-900 rounded-2xl border border-neutral-800 inline-block max-w-2xl w-full">
-                    <h3 className="text-xl font-bold text-white mb-2">Tertarik melihat lebih detail?</h3>
-                    <p className="text-neutral-400 mb-6">Unduh versi PDF lengkap dari portofolio saya untuk melihat studi kasus mendalam.</p>
-                    <a href={portfolioUrl} target="_blank" rel="noreferrer">
+                 <div className="p-8 bg-neutral-900 rounded-2xl border border-neutral-800 inline-block max-w-2xl w-full relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <h3 className="text-xl font-bold text-white mb-2 relative z-10">Tertarik melihat lebih detail?</h3>
+                    <p className="text-neutral-400 mb-6 relative z-10">Unduh versi PDF lengkap dari portofolio saya untuk melihat studi kasus mendalam.</p>
+                    <a href={portfolioUrl} target="_blank" rel="noreferrer" className="relative z-10">
                         <Button size="lg" className="gap-2 shadow-xl shadow-blue-500/20 bg-blue-600 hover:bg-blue-500 border-none w-full sm:w-auto">
                             <Download className="w-4 h-4" /> Download Portofolio PDF
                         </Button>

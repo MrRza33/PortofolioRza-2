@@ -22,6 +22,8 @@ const MOCK_DATA = {
     logo_url: '', 
     cv_url: '#',
     portfolio_url: '#',
+    years_experience: '5+',
+    brands_handled: '12+',
     email: 'alex@example.com',
     github: 'https://github.com',
     linkedin: 'https://linkedin.com'

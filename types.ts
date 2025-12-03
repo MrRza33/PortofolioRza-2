@@ -10,6 +10,8 @@ export interface Profile {
   logo_url?: string; // New field for custom logo
   cv_url: string;
   portfolio_url?: string;
+  years_experience?: string; // Editable statistic
+  brands_handled?: string;   // Editable statistic
   email: string;
   github: string;
   linkedin: string;
