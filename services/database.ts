@@ -11,7 +11,7 @@ export const supabase = isSupabaseConfigured
   ? createClient(SUPABASE_URL, SUPABASE_KEY) 
   : null;
 
-// Mock Data for Initial Load & Fallback
+// Mock Data for Initial Load (Only used if database is empty)
 const MOCK_DATA = {
   profile: {
     id: '1',
@@ -19,7 +19,7 @@ const MOCK_DATA = {
     tagline: 'Senior Fullstack Engineer & UI Designer',
     bio: 'Saya adalah pengembang web yang berdedikasi dengan spesialisasi dalam membangun pengalaman digital yang luar biasa. Saat ini fokus pada React, TypeScript, dan desain sistem yang scalable. Saya suka memecahkan masalah kompleks dan mengubahnya menjadi antarmuka yang sederhana dan indah.',
     avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?fit=crop&w=400&h=400',
-    logo_url: '', // Default empty, falls back to text
+    logo_url: '', 
     cv_url: '#',
     portfolio_url: '#',
     email: 'alex@example.com',
@@ -63,235 +63,170 @@ const MOCK_DATA = {
   ]
 };
 
-// Helper to simulate delay
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
 // Generic CRUD implementations
-// NOTE: Jika Supabase terkonfigurasi, kita TIDAK fallback ke local storage saat write operation
-// agar user tahu jika gagal menyimpan.
+// NOTE: KITA HANYA MENGGUNAKAN SUPABASE. 
+// Login hanya berhasil jika kredensial Supabase valid.
 
 export const db = {
   async getProfile(): Promise<Profile> {
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.from('profiles').select('*').single();
-        if (error) {
-            // Jika errornya "PGRST116" artinya tidak ada baris (tabel kosong),
-            // kita bisa return default mock profile agar admin bisa mulai mengedit.
-            // Namun jika error lain, biarkan saja.
-            console.warn('Supabase fetch error:', error.message);
-        }
         if (data) return data;
+        // Jika belum ada profile di DB, return MOCK tapi jangan save dulu
       } catch (e) {
         console.warn('Supabase fetch failed', e);
       }
     }
-    
-    // Merge Local Data with Mock Default Structure
-    const local = localStorage.getItem('pf_profile');
-    if (local) {
-        const parsedLocal = JSON.parse(local);
-        return { ...MOCK_DATA.profile, ...parsedLocal };
-    }
-    
+    // Return MOCK_DATA agar tampilan tidak rusak saat pertama kali load
     return MOCK_DATA.profile;
   },
 
   async updateProfile(profile: Profile): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-      // Hilangkan ID saat update jika ID profile adalah string '1' (dari mock)
-      // karena Supabase mengharapkan UUID.
-      // Namun, karena 'upsert' butuh Primary Key, kita asumsikan
-      // tabel 'profiles' hanya punya 1 baris untuk portfolio single user.
-      // Jika ID tidak valid UUID, kita hapus dari payload dan biarkan Supabase generate/match.
-      
-      const payload = { ...profile };
-      // Validasi sederhana UUID: panjang 36 char
-      if (payload.id && payload.id.length < 32) {
-          delete (payload as any).id;
-      }
+    if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
 
-      const { error } = await supabase.from('profiles').upsert(payload);
-      if (error) throw error; // Tampilkan error ke UI
-      return;
-    }
-    localStorage.setItem('pf_profile', JSON.stringify(profile));
+    const payload = { ...profile };
+    // Remove invalid ID if necessary or ensure it matches DB
+    if (payload.id && payload.id.length < 32) delete (payload as any).id;
+
+    const { error } = await supabase.from('profiles').upsert(payload);
+    if (error) throw new Error(error.message);
   },
 
   async getExperiences(): Promise<Experience[]> {
     if (isSupabaseConfigured && supabase) {
       const { data } = await supabase.from('experiences').select('*').order('period', { ascending: false });
-      if (data) return (data as any[]).map(d => ({...d, type: d.type as 'work'|'education'}));
+      if (data && data.length > 0) return (data as any[]).map(d => ({...d, type: d.type as 'work'|'education'}));
     }
-    const local = localStorage.getItem('pf_experience');
-    return local ? JSON.parse(local) : MOCK_DATA.experience;
+    return MOCK_DATA.experience as Experience[];
   },
 
   async saveExperience(item: Experience): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.from('experiences').upsert(item);
-      if (error) throw error;
-      return;
-    }
-    const items = await db.getExperiences();
-    const index = items.findIndex(i => i.id === item.id);
-    if (index >= 0) items[index] = item;
-    else items.push(item);
-    localStorage.setItem('pf_experience', JSON.stringify(items));
+    if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+    const { error } = await supabase.from('experiences').upsert(item);
+    if (error) throw new Error(error.message);
   },
 
   async deleteExperience(id: string): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-      const { error } = await supabase.from('experiences').delete().eq('id', id);
-      if (error) throw error;
-      return;
-    }
-    const items = await db.getExperiences();
-    localStorage.setItem('pf_experience', JSON.stringify(items.filter(i => i.id !== id)));
+    if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+    const { error } = await supabase.from('experiences').delete().eq('id', id);
+    if (error) throw new Error(error.message);
   },
 
   async getSkills(): Promise<Skill[]> {
     if (isSupabaseConfigured && supabase) {
         const { data } = await supabase.from('skills').select('*');
-        if (data) return data as any[];
+        if (data && data.length > 0) return data as any[];
     }
-    const local = localStorage.getItem('pf_skills');
-    return local ? JSON.parse(local) : MOCK_DATA.skills;
+    return MOCK_DATA.skills as Skill[];
   },
 
   async saveSkill(item: Skill): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.from('skills').upsert(item);
-        if (error) throw error;
-        return;
-    }
-    const items = await db.getSkills();
-    const index = items.findIndex(i => i.id === item.id);
-    if (index >= 0) items[index] = item;
-    else items.push(item);
-    localStorage.setItem('pf_skills', JSON.stringify(items));
+    if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+    const { error } = await supabase.from('skills').upsert(item);
+    if (error) throw new Error(error.message);
   },
 
   async deleteSkill(id: string): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.from('skills').delete().eq('id', id);
-        if (error) throw error;
-        return;
-    }
-    const items = await db.getSkills();
-    localStorage.setItem('pf_skills', JSON.stringify(items.filter(i => i.id !== id)));
+    if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+    const { error } = await supabase.from('skills').delete().eq('id', id);
+    if (error) throw new Error(error.message);
   },
 
   async getProjects(): Promise<Project[]> {
     if (isSupabaseConfigured && supabase) {
         const { data } = await supabase.from('projects').select('*');
-        if (data) return data as any[];
+        if (data && data.length > 0) return data as any[];
     }
-    const local = localStorage.getItem('pf_projects');
-    return local ? JSON.parse(local) : MOCK_DATA.projects;
+    return MOCK_DATA.projects;
   },
 
   async saveProject(item: Project): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.from('projects').upsert(item);
-        if (error) throw error;
-        return;
-    }
-    const items = await db.getProjects();
-    const index = items.findIndex(i => i.id === item.id);
-    if (index >= 0) items[index] = item;
-    else items.push(item);
-    localStorage.setItem('pf_projects', JSON.stringify(items));
+    if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+    const { error } = await supabase.from('projects').upsert(item);
+    if (error) throw new Error(error.message);
   },
 
   async deleteProject(id: string): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.from('projects').delete().eq('id', id);
-        if (error) throw error;
-        return;
-    }
-    const items = await db.getProjects();
-    localStorage.setItem('pf_projects', JSON.stringify(items.filter(i => i.id !== id)));
+    if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+    const { error } = await supabase.from('projects').delete().eq('id', id);
+    if (error) throw new Error(error.message);
   },
 
   async getPosts(): Promise<BlogPost[]> {
     if (isSupabaseConfigured && supabase) {
         const { data } = await supabase.from('posts').select('*');
-        if (data) return data as any[];
+        if (data && data.length > 0) return data as any[];
     }
-    const local = localStorage.getItem('pf_posts');
-    return local ? JSON.parse(local) : MOCK_DATA.posts;
+    return MOCK_DATA.posts;
   },
 
   async savePost(item: BlogPost): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.from('posts').upsert(item);
-        if (error) throw error;
-        return;
-    }
-    const items = await db.getPosts();
-    const index = items.findIndex(i => i.id === item.id);
-    if (index >= 0) items[index] = item;
-    else items.push(item);
-    localStorage.setItem('pf_posts', JSON.stringify(items));
+    if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+    const { error } = await supabase.from('posts').upsert(item);
+    if (error) throw new Error(error.message);
   },
 
   async deletePost(id: string): Promise<void> {
-    if (isSupabaseConfigured && supabase) {
-        const { error } = await supabase.from('posts').delete().eq('id', id);
-        if (error) throw error;
-        return;
-    }
-    const items = await db.getPosts();
-    localStorage.setItem('pf_posts', JSON.stringify(items.filter(i => i.id !== id)));
+    if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+    const { error } = await supabase.from('posts').delete().eq('id', id);
+    if (error) throw new Error(error.message);
   },
 
-  // Upload file logic: Tries Supabase Storage first, falls back to Base64
   async uploadFile(file: File, bucket: string = 'portfolio'): Promise<string> {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-        const filePath = `${fileName}`;
+    if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
 
-        // Attempt to upload
-        const { error: uploadError } = await supabase.storage
-          .from(bucket)
-          .upload(filePath, file);
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+    const filePath = `${fileName}`;
 
-        if (uploadError) {
-          console.error("Supabase Storage Upload Error:", uploadError);
-          // If bucket doesn't exist or RLS fails, we throw to let user know
-          throw uploadError; 
-        }
+    // Upload ke Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file);
 
-        const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
-        return data.publicUrl;
-      } catch (err) {
-        console.warn("Supabase upload failed.");
-        throw err; // Re-throw to alert user
-      }
+    if (uploadError) {
+      console.error("Supabase Storage Upload Error:", uploadError);
+      throw new Error(`Upload failed: ${uploadError.message}`); 
     }
 
-    // Mock Mode / Fallback: Convert to Base64 (Only if supabase not configured)
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = error => reject(error);
-    });
+    const { data } = supabase.storage.from(bucket).getPublicUrl(filePath);
+    return data.publicUrl;
   },
 
   async login(email: string, password?: string): Promise<boolean> {
-    if (isSupabaseConfigured && supabase && password) {
-       const { error } = await supabase.auth.signInWithPassword({ email, password });
-       if (!error) return true;
-       console.warn("Supabase Auth failed:", error.message);
+    if (!isSupabaseConfigured || !supabase) {
+        console.error("Supabase configuration missing");
+        return false;
     }
 
-    // Hardcoded demo credentials fallback
-    if (email === 'admin@admin.com') return true;
+    if (!password) {
+        console.warn("Password required for Supabase login");
+        return false;
+    }
+
+    // Melakukan login sesungguhnya ke Supabase Auth
+    // Ini PENTING agar Row Level Security (RLS) mengizinkan kita melakukan penulisan (INSERT/UPDATE)
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     
-    return false;
+    if (error) {
+       console.error("Supabase Login Failed:", error.message);
+       throw new Error(error.message);
+    }
+
+    return true;
+  },
+
+  // Periksa apakah user sudah login sebelumnya (Persistence)
+  async getSession() {
+    if (!isSupabaseConfigured || !supabase) return null;
+    const { data } = await supabase.auth.getSession();
+    return data.session;
+  },
+
+  // Logout dari Supabase
+  async logout() {
+    if (!isSupabaseConfigured || !supabase) return;
+    await supabase.auth.signOut();
   }
 };

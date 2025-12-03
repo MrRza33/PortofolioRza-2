@@ -93,8 +93,8 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
             } else {
                 setError('Invalid credentials');
             }
-        } catch (err) {
-            setError('Login failed');
+        } catch (err: any) {
+            setError(err.message || 'Login failed');
         } finally {
             setLoading(false);
         }
@@ -133,9 +133,6 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
                         {loading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
                         Login
                     </Button>
-                    <div className="text-center text-xs text-neutral-600 mt-4">
-                        (Demo: admin@admin.com / password)
-                    </div>
                 </form>
             </Card>
         </div>
@@ -177,8 +174,15 @@ export default function App() {
         posts: []
     });
 
-    const fetchData = async () => {
+    const initApp = async () => {
         try {
+            // 1. Cek Auth Session (Remember Me)
+            const session = await db.getSession();
+            if (session) {
+                setIsAuthenticated(true);
+            }
+
+            // 2. Fetch Data
             const [profile, experience, skills, projects, posts] = await Promise.all([
                 db.getProfile(),
                 db.getExperiences(),
@@ -195,8 +199,13 @@ export default function App() {
     };
 
     useEffect(() => {
-        fetchData();
+        initApp();
     }, []);
+
+    const handleLogout = async () => {
+        await db.logout();
+        setIsAuthenticated(false);
+    };
 
     if (loading) {
         return (
@@ -230,8 +239,8 @@ export default function App() {
                         isAuthenticated ? (
                             <AdminDashboard 
                                 data={data as any} 
-                                refreshData={fetchData} 
-                                onLogout={() => setIsAuthenticated(false)} 
+                                refreshData={initApp} 
+                                onLogout={handleLogout} 
                             />
                         ) : (
                             <Navigate to="/login" />
