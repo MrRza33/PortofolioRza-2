@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useParams } from 'react-router-dom';
-import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, GraduationCap, ArrowRight, Code, Database, Layout, PenTool, Send, CheckCircle, MessageSquare, User } from 'lucide-react';
+import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, GraduationCap, ArrowRight, Code, Database, Layout, PenTool, Send, CheckCircle, MessageSquare, User, Box } from 'lucide-react';
 import { Profile, Experience, Skill, Project, BlogPost, Comment } from '../types';
 import { Button, Card, Input, Textarea, Label } from './ui';
 import { db } from '../services/database';
@@ -189,11 +190,19 @@ export const ExperienceSection = ({ experiences }: { experiences: Experience[] }
 
 // --- SKILLS SECTION ---
 export const Skills = ({ skills }: { skills: Skill[] }) => {
-  const categories = [
-    { id: 'frontend', label: 'Frontend', icon: Layout },
-    { id: 'backend', label: 'Backend', icon: Database },
-    { id: 'tools', label: 'Tools', icon: PenTool },
-  ];
+  // Extract unique categories dynamically
+  const uniqueCategories = Array.from(new Set(skills.map(s => s.category)));
+
+  // Helper to guess icon based on category name
+  const getCategoryIcon = (category: string) => {
+      const lower = category.toLowerCase();
+      if (lower.includes('front')) return Layout;
+      if (lower.includes('back')) return Database;
+      if (lower.includes('tool')) return PenTool;
+      if (lower.includes('soft')) return User;
+      if (lower.includes('mobile')) return Box;
+      return Code;
+  };
 
   return (
     <section id="skills" className="py-24 bg-neutral-900/30">
@@ -207,13 +216,13 @@ export const Skills = ({ skills }: { skills: Skill[] }) => {
         </motion.h2>
         
         <div className="grid md:grid-cols-3 gap-8">
-          {categories.map((cat) => {
-            const categorySkills = skills.filter(s => s.category === cat.id);
-            if (categorySkills.length === 0) return null;
+          {uniqueCategories.map((catName) => {
+            const categorySkills = skills.filter(s => s.category === catName);
+            const Icon = getCategoryIcon(catName);
             
             return (
               <motion.div
-                key={cat.id}
+                key={catName}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -221,9 +230,9 @@ export const Skills = ({ skills }: { skills: Skill[] }) => {
               >
                 <div className="flex items-center gap-3 mb-6">
                   <div className="p-3 bg-blue-500/10 rounded-lg">
-                    <cat.icon className="w-6 h-6 text-blue-400" />
+                    <Icon className="w-6 h-6 text-blue-400" />
                   </div>
-                  <h3 className="text-xl font-bold text-neutral-200 capitalize">{cat.label}</h3>
+                  <h3 className="text-xl font-bold text-neutral-200 capitalize">{catName}</h3>
                 </div>
                 
                 <div className="space-y-4">

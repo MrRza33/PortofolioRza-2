@@ -5,92 +5,208 @@ import { Hero, About, ExperienceSection, Skills, ProjectsTeaser, BlogTeaser, Pro
 import { AdminDashboard } from './components/AdminDashboard';
 import { Profile, Experience, Skill, Project, BlogPost } from './types';
 import { Button, Input, Card } from './components/ui';
-import { Loader2, Download, Home } from 'lucide-react';
+import { Loader2, Download, Home, Menu, X, ChevronRight } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 // --- NAV BAR ---
 const Navbar = ({ profile }: { profile?: Profile | null }) => {
     const [scrolled, setScrolled] = useState(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
     const isLoginPage = location.pathname === '/login';
     const isHomePage = location.pathname === '/';
 
     useEffect(() => {
-        const handleScroll = () => setScrolled(window.scrollY > 50);
+        const handleScroll = () => setScrolled(window.scrollY > 20);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // Function to handle scrolling to sections
+    // Close mobile menu when route changes
+    useEffect(() => {
+        setMobileMenuOpen(false);
+    }, [location]);
+
     const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
         e.preventDefault();
+        setMobileMenuOpen(false);
+        
         if (isHomePage) {
-            // If on home page, smooth scroll
             const element = document.getElementById(id);
-            if (element) element.scrollIntoView({ behavior: 'smooth' });
+            if (element) {
+                const headerOffset = 80;
+                const elementPosition = element.getBoundingClientRect().top;
+                const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+            }
         } else {
-            // If on other pages, navigate to home then scroll
             navigate('/');
             setTimeout(() => {
                 const element = document.getElementById(id);
-                if (element) element.scrollIntoView({ behavior: 'smooth' });
+                if (element) {
+                    const headerOffset = 80;
+                    const elementPosition = element.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+                    window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                }
             }, 100);
         }
     };
 
-    // Hide navbar on admin dashboard
     if (location.pathname.includes('admin')) return null;
 
+    const navLinks = [
+        { name: 'About', type: 'scroll', target: 'about' },
+        { name: 'Experience', type: 'scroll', target: 'experience' },
+        { name: 'Skills', type: 'scroll', target: 'skills' },
+        { name: 'Projects', type: 'route', target: '/projects' },
+        { name: 'Blog', type: 'route', target: '/blog' },
+        { name: 'Contact', type: 'route', target: '/contact' },
+    ];
+
     return (
-        <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || !isHomePage ? 'bg-black/90 backdrop-blur-md border-b border-neutral-900 py-3' : 'bg-transparent py-5'}`}>
-            <div className="container mx-auto px-6 flex justify-between items-center">
-                <Link to="/" className="text-xl font-bold tracking-tighter text-white flex items-center gap-2">
-                    {profile?.logo_url ? (
-                        <img src={profile.logo_url} alt="Logo" className="h-8 w-auto object-contain" />
-                    ) : (
-                        <>Alex<span className="text-blue-500">.Dev</span></>
-                    )}
-                </Link>
-                
-                {isLoginPage ? (
-                    <Link to="/">
-                        <Button variant="ghost" size="sm" className="gap-2">
-                            <Home className="w-4 h-4" /> Kembali ke Home
-                        </Button>
+        <>
+            <header 
+                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out border-b ${
+                    scrolled || mobileMenuOpen || !isHomePage
+                        ? 'bg-black/80 backdrop-blur-md border-white/10 py-3 shadow-lg shadow-black/20' 
+                        : 'bg-transparent border-transparent py-6'
+                }`}
+            >
+                <div className="container mx-auto px-6 flex justify-between items-center">
+                    {/* Logo */}
+                    <Link to="/" className="relative z-50 group">
+                        {profile?.logo_url ? (
+                            <img src={profile.logo_url} alt="Logo" className="h-10 w-auto object-contain transition-transform group-hover:scale-105" />
+                        ) : (
+                            <div className="text-2xl font-bold tracking-tighter font-display">
+                                <span className="text-white">Alex</span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">.Dev</span>
+                            </div>
+                        )}
                     </Link>
-                ) : (
-                    <>
-                        <nav className="hidden md:flex gap-8 items-center">
-                            {/* Scroll Links for Home Sections */}
-                            {['About', 'Experience', 'Skills'].map((item) => (
-                                <a 
-                                    key={item} 
-                                    href={`#${item.toLowerCase()}`}
-                                    onClick={(e) => handleNavClick(e, item.toLowerCase())}
-                                    className="text-sm font-medium text-neutral-300 hover:text-blue-400 transition-colors cursor-pointer"
-                                >
-                                    {item}
-                                </a>
+                    
+                    {/* Desktop Navigation */}
+                    {!isLoginPage && (
+                        <nav className="hidden md:flex items-center gap-1">
+                            {navLinks.map((link) => (
+                                link.type === 'scroll' ? (
+                                    <a 
+                                        key={link.name}
+                                        href={`#${link.target}`}
+                                        onClick={(e) => handleNavClick(e, link.target)}
+                                        className="px-4 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-white/5 rounded-full transition-all duration-300 relative group"
+                                    >
+                                        {link.name}
+                                    </a>
+                                ) : (
+                                    <Link 
+                                        key={link.name}
+                                        to={link.target}
+                                        className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
+                                            location.pathname === link.target 
+                                            ? 'text-white bg-white/10' 
+                                            : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                                        }`}
+                                    >
+                                        {link.name}
+                                    </Link>
+                                )
                             ))}
-                            
-                            {/* Direct Page Links */}
-                            <Link to="/projects" className={`text-sm font-medium transition-colors ${location.pathname === '/projects' ? 'text-blue-400' : 'text-neutral-300 hover:text-blue-400'}`}>Projects</Link>
-                            <Link to="/blog" className={`text-sm font-medium transition-colors ${location.pathname.includes('/blog') ? 'text-blue-400' : 'text-neutral-300 hover:text-blue-400'}`}>Blog</Link>
-                            <Link to="/contact" className={`text-sm font-medium transition-colors ${location.pathname === '/contact' ? 'text-blue-400' : 'text-neutral-300 hover:text-blue-400'}`}>Contact</Link>
                         </nav>
-                        
-                        <div className="flex gap-4 items-center">
-                             <Link to="/contact" className="md:hidden">
-                                <Button size="sm" variant="primary">Contact</Button>
+                    )}
+                    
+                    {/* Action Buttons (Desktop) */}
+                    <div className="hidden md:flex items-center gap-4">
+                        {!isLoginPage && (
+                            <Link to="/login">
+                                <Button variant="outline" size="sm" className="rounded-full border-neutral-700 bg-black/50 hover:bg-neutral-800 hover:text-white hover:border-neutral-600 transition-all">
+                                    Admin
+                                </Button>
+                            </Link>
+                        )}
+                        {isLoginPage && (
+                            <Link to="/">
+                                <Button variant="ghost" size="sm" className="gap-2">
+                                    <Home className="w-4 h-4" /> Home
+                                </Button>
+                            </Link>
+                        )}
+                    </div>
+
+                    {/* Mobile Menu Toggle */}
+                    {!isLoginPage && (
+                        <button 
+                            className="md:hidden relative z-50 p-2 text-white hover:bg-white/10 rounded-full transition-colors"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        >
+                            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                        </button>
+                    )}
+                </div>
+            </header>
+
+            {/* Mobile Menu Overlay */}
+            <AnimatePresence>
+                {mobileMenuOpen && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.2 }}
+                        className="fixed inset-0 z-40 bg-black/95 backdrop-blur-xl pt-24 px-6 md:hidden flex flex-col"
+                    >
+                        <nav className="flex flex-col gap-2">
+                            {navLinks.map((link, idx) => (
+                                <motion.div
+                                    key={link.name}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: idx * 0.05 }}
+                                >
+                                    {link.type === 'scroll' ? (
+                                        <a 
+                                            href={`#${link.target}`}
+                                            onClick={(e) => handleNavClick(e, link.target)}
+                                            className="flex items-center justify-between p-4 text-lg font-medium text-neutral-200 hover:text-white hover:bg-white/5 rounded-xl transition-all border border-transparent hover:border-white/10"
+                                        >
+                                            {link.name}
+                                            <ChevronRight className="w-4 h-4 text-neutral-600" />
+                                        </a>
+                                    ) : (
+                                        <Link 
+                                            to={link.target}
+                                            className={`flex items-center justify-between p-4 text-lg font-medium rounded-xl transition-all border ${
+                                                location.pathname === link.target 
+                                                ? 'text-white bg-blue-600/10 border-blue-500/20' 
+                                                : 'text-neutral-200 hover:text-white hover:bg-white/5 border-transparent hover:border-white/10'
+                                            }`}
+                                        >
+                                            {link.name}
+                                            <ChevronRight className={`w-4 h-4 ${location.pathname === link.target ? 'text-blue-500' : 'text-neutral-600'}`} />
+                                        </Link>
+                                    )}
+                                </motion.div>
+                            ))}
+                        </nav>
+
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                            className="mt-8 pt-8 border-t border-white/10 flex flex-col gap-4"
+                        >
+                             <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                                <Button className="w-full justify-between" variant="outline">
+                                    Admin Dashboard <Home className="w-4 h-4" />
+                                </Button>
                              </Link>
-                             <Link to="/login">
-                                <Button variant="outline" size="sm" className="hidden md:flex border-neutral-700 hover:border-blue-500 hover:text-blue-400">Admin</Button>
-                             </Link>
-                        </div>
-                    </>
+                        </motion.div>
+                    </motion.div>
                 )}
-            </div>
-        </header>
+            </AnimatePresence>
+        </>
     );
 };
 
@@ -99,15 +215,19 @@ const Footer = () => {
     const location = useLocation();
     if (location.pathname.includes('admin')) return null;
     return (
-        <footer className="py-8 border-t border-neutral-900 bg-black text-center text-neutral-500 text-sm">
-            <div className="container mx-auto px-6">
-                 <div className="flex justify-center gap-6 mb-4">
-                     <Link to="/" className="hover:text-white">Home</Link>
-                     <Link to="/projects" className="hover:text-white">Projects</Link>
-                     <Link to="/blog" className="hover:text-white">Blog</Link>
-                     <Link to="/contact" className="hover:text-white">Contact</Link>
+        <footer className="py-12 border-t border-neutral-900 bg-black text-center relative overflow-hidden">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent opacity-50" />
+            <div className="container mx-auto px-6 relative z-10">
+                 <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-8 text-sm font-medium">
+                     <Link to="/" className="text-neutral-400 hover:text-white transition-colors">Home</Link>
+                     <Link to="/projects" className="text-neutral-400 hover:text-white transition-colors">Projects</Link>
+                     <Link to="/blog" className="text-neutral-400 hover:text-white transition-colors">Blog</Link>
+                     <Link to="/contact" className="text-neutral-400 hover:text-white transition-colors">Contact</Link>
                  </div>
-                 <p>&copy; {new Date().getFullYear()} Alex Pradana. Built with React & Tailwind.</p>
+                 <div className="text-neutral-600 text-sm flex flex-col gap-2">
+                    <p>&copy; {new Date().getFullYear()} Alex Pradana. All rights reserved.</p>
+                    <p className="text-xs">Built with React, Supabase & Tailwind CSS</p>
+                 </div>
             </div>
         </footer>
     );
@@ -141,37 +261,40 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-black p-4 pt-20">
-            <Card className="w-full max-w-md p-8 bg-neutral-900 border-neutral-800 shadow-2xl shadow-blue-900/10">
+        <div className="min-h-screen flex items-center justify-center bg-black p-4 relative overflow-hidden">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-black to-black pointer-events-none" />
+            <Card className="w-full max-w-md p-8 bg-neutral-900/80 border-neutral-800 shadow-2xl backdrop-blur-md relative z-10">
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-white mb-2">Admin Login</h1>
-                    <p className="text-neutral-400">Masuk untuk mengelola portofolio</p>
+                    <h1 className="text-3xl font-bold text-white mb-2 font-display">Admin Portal</h1>
+                    <p className="text-neutral-400">Masuk untuk mengelola konten website</p>
                 </div>
                 {error && <div className="p-3 mb-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded text-sm text-center">{error}</div>}
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-neutral-300">Email Address</label>
                         <Input 
                             type="email" 
-                            placeholder="Email" 
+                            placeholder="name@example.com" 
                             value={email} 
                             onChange={e => setEmail(e.target.value)} 
                             required 
-                            className="bg-black border-neutral-800 focus:ring-blue-500"
+                            className="bg-black/50 border-neutral-800 focus:ring-blue-500 h-11"
                         />
                     </div>
-                    <div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-neutral-300">Password</label>
                         <Input 
                             type="password" 
-                            placeholder="Password" 
+                            placeholder="••••••••" 
                             value={password} 
                             onChange={e => setPassword(e.target.value)} 
                             required 
-                            className="bg-black border-neutral-800 focus:ring-blue-500"
+                            className="bg-black/50 border-neutral-800 focus:ring-blue-500 h-11"
                         />
                     </div>
-                    <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-500" disabled={loading}>
+                    <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 h-11 text-base font-medium shadow-lg shadow-blue-600/20 mt-4" disabled={loading}>
                         {loading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : null}
-                        Login
+                        Sign In
                     </Button>
                 </form>
             </Card>

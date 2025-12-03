@@ -1,3 +1,4 @@
+
 export type SectionType = 'hero' | 'about' | 'experience' | 'skills' | 'projects' | 'blog';
 
 export interface Profile {
@@ -26,7 +27,7 @@ export interface Experience {
 export interface Skill {
   id: string;
   name: string;
-  category: 'frontend' | 'backend' | 'tools' | 'soft';
+  category: string; // Changed from restricted union type to string for flexibility
   level: number; // 0-100
 }
 

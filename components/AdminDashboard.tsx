@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, Briefcase, Code, Folder, FileText, User, Upload } from 'lucide-react';
@@ -60,7 +61,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
     
     const emptyModels: any = {
       experience: { id: newId, role: '', company: '', period: '', description: '', type: 'work' },
-      skills: { id: newId, name: '', category: 'frontend', level: 50 },
+      skills: { id: newId, name: '', category: 'Frontend', level: 50 },
       projects: { id: newId, title: '', description: '', image_url: '', tags: [], category: 'Web', demo_url: '', repo_url: '' },
       blog: { id: newId, title: '', excerpt: '', content: '', cover_image: '', created_at: new Date().toISOString(), category: 'General' }
     };
@@ -222,23 +223,9 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                         </div>
                     )
                 }
-                if (key === 'category' && activeTab === 'skills') {
-                    return (
-                        <div key={key}>
-                            <Label>Category</Label>
-                            <select 
-                                className="flex h-10 w-full rounded-md border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                value={formData[key]}
-                                onChange={e => setFormData({...formData, [key]: e.target.value})}
-                            >
-                                <option value="frontend">Frontend</option>
-                                <option value="backend">Backend</option>
-                                <option value="tools">Tools</option>
-                                <option value="soft">Soft Skills</option>
-                            </select>
-                        </div>
-                    )
-                }
+                // REMOVED: Specific dropdown for skills category
+                // This allows the default Input renderer (below) to handle 'category' for skills,
+                // enabling free text editing.
 
                 return (
                   <div key={key}>
@@ -247,6 +234,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                       type={typeof formData[key] === 'number' ? 'number' : 'text'}
                       value={formData[key]} 
                       onChange={e => setFormData({...formData, [key]: e.target.type === 'number' ? Number(e.target.value) : e.target.value})} 
+                      placeholder={key === 'category' ? 'e.g. Frontend, Backend, Tools...' : ''}
                     />
                   </div>
                 );
