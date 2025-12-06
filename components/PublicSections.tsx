@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useParams } from 'react-router-dom';
-import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, GraduationCap, ArrowRight, Code, Database, Layout, PenTool, Send, CheckCircle, MessageSquare, User, Box } from 'lucide-react';
+import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, GraduationCap, ArrowRight, Code, Database, Layout, PenTool, Send, CheckCircle, MessageSquare, User, Box, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Profile, Experience, Skill, Project, BlogPost, Comment } from '../types';
 import { Button, Card, Input, Textarea, Label } from './ui';
 import { db } from '../services/database';
@@ -35,6 +35,131 @@ const SubscriptionCTA = () => {
                     <Button className="shrink-0 bg-blue-600 hover:bg-blue-500">Subscribe</Button>
                 </div>
             </div>
+        </div>
+    );
+};
+
+// --- PROJECT MODAL (CAROUSEL) ---
+const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => void }) => {
+    // Collect all images: Gallery + Main Image if not in gallery
+    const images = project.gallery && project.gallery.length > 0 
+        ? project.gallery 
+        : [project.image_url];
+    
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    const nextImage = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    };
+
+    const prevImage = (e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+    };
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8">
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={onClose}
+                className="absolute inset-0 bg-black/90 backdrop-blur-md"
+            />
+            
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="relative bg-neutral-900 w-full max-w-6xl max-h-[90vh] rounded-2xl overflow-hidden shadow-2xl flex flex-col md:flex-row border border-neutral-800 z-[101]"
+            >
+                {/* Close Button */}
+                <button 
+                    onClick={onClose}
+                    className="absolute top-4 right-4 z-50 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors"
+                >
+                    <X className="w-6 h-6" />
+                </button>
+
+                {/* Left: Image Carousel */}
+                <div className="w-full md:w-2/3 bg-black relative flex items-center justify-center overflow-hidden h-[40vh] md:h-auto group">
+                    <AnimatePresence mode='wait'>
+                        <motion.img 
+                            key={currentImageIndex}
+                            src={images[currentImageIndex]}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="w-full h-full object-contain"
+                            alt={project.title}
+                        />
+                    </AnimatePresence>
+
+                    {/* Navigation Buttons */}
+                    {images.length > 1 && (
+                        <>
+                            <button 
+                                onClick={prevImage}
+                                className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full hover:bg-blue-600 transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                                <ChevronLeft className="w-6 h-6" />
+                            </button>
+                            <button 
+                                onClick={nextImage}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full hover:bg-blue-600 transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                            
+                            {/* Indicators */}
+                            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                                {images.map((_, idx) => (
+                                    <button 
+                                        key={idx}
+                                        onClick={() => setCurrentImageIndex(idx)}
+                                        className={`w-2 h-2 rounded-full transition-all ${idx === currentImageIndex ? 'bg-blue-500 w-4' : 'bg-white/50 hover:bg-white'}`}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
+                </div>
+
+                {/* Right: Content */}
+                <div className="w-full md:w-1/3 p-8 flex flex-col overflow-y-auto">
+                    <div className="mb-6">
+                        <span className="text-blue-500 font-bold text-sm tracking-wider uppercase mb-2 block">{project.category}</span>
+                        <h2 className="text-3xl font-bold text-white mb-4">{project.title}</h2>
+                        
+                        <div className="flex flex-wrap gap-2 mb-6">
+                            {project.tags.map(tag => (
+                                <span key={tag} className="px-3 py-1 bg-neutral-800 text-neutral-300 rounded-full text-xs font-medium border border-neutral-700">
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+
+                        <div className="prose prose-invert prose-sm text-neutral-400 mb-8">
+                            <p>{project.description}</p>
+                        </div>
+                    </div>
+
+                    <div className="mt-auto space-y-4 pt-6 border-t border-neutral-800">
+                        {project.demo_url && (
+                            <a href={project.demo_url} target="_blank" rel="noreferrer" className="flex items-center justify-center w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors">
+                                <ExternalLink className="w-4 h-4 mr-2" /> Live Demo / Visit Link
+                            </a>
+                        )}
+                        {project.repo_url && (
+                            <a href={project.repo_url} target="_blank" rel="noreferrer" className="flex items-center justify-center w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg font-medium transition-colors">
+                                <Github className="w-4 h-4 mr-2" /> View Repository
+                            </a>
+                        )}
+                    </div>
+                </div>
+            </motion.div>
         </div>
     );
 };
@@ -276,6 +401,7 @@ export const Skills = ({ skills }: { skills: Skill[] }) => {
 // --- PROJECTS TEASER (FOR HOME - BENTO STYLE) ---
 export const ProjectsTeaser = ({ projects }: { projects: Project[] }) => {
   const displayProjects = projects.slice(0, 3); // Max 3 items
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   
   return (
     <section className="py-24 bg-black">
@@ -288,9 +414,6 @@ export const ProjectsTeaser = ({ projects }: { projects: Project[] }) => {
           {/* Bento Grid Layout */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6 mb-12 auto-rows-[300px]">
              {displayProjects.map((project, idx) => {
-                // Determine span classes based on index
-                // Index 0: Large (2 cols, 2 rows)
-                // Index 1, 2: Standard (2 cols, 1 row)
                 let spanClass = "";
                 if (idx === 0) spanClass = "md:col-span-2 md:row-span-2";
                 else spanClass = "md:col-span-2 md:row-span-1";
@@ -302,7 +425,8 @@ export const ProjectsTeaser = ({ projects }: { projects: Project[] }) => {
                        whileInView={{ opacity: 1, y: 0 }}
                        viewport={{ once: true }}
                        transition={{ delay: idx * 0.1 }}
-                       className={`group relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 ${spanClass}`}
+                       className={`group relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 ${spanClass} cursor-pointer`}
+                       onClick={() => setSelectedProject(project)}
                     >
                        <img 
                             src={project.image_url} 
@@ -310,21 +434,18 @@ export const ProjectsTeaser = ({ projects }: { projects: Project[] }) => {
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
                        />
                        
-                       {/* Overlay Gradient */}
                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300" />
                        
-                       {/* Content Content Slide Up */}
                        <div className="absolute bottom-0 left-0 right-0 p-6 translate-y-2 md:translate-y-6 group-hover:translate-y-0 transition-transform duration-300">
                            <div className="text-blue-400 text-xs font-bold uppercase tracking-wider mb-2">{project.category}</div>
                            <h3 className="text-2xl font-bold text-white mb-2">{project.title}</h3>
                            <p className="text-neutral-300 text-sm line-clamp-2 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 delay-75">
                                {project.description}
                            </p>
-                           
-                           <div className="mt-4 flex gap-3 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 delay-100">
-                                <Link to="/projects" className="inline-flex items-center text-sm font-medium text-white hover:text-blue-400">
+                           <div className="mt-4 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 delay-100">
+                                <span className="text-sm font-medium text-white hover:text-blue-400 inline-flex items-center">
                                     Lihat Detail <ArrowRight className="w-4 h-4 ml-1" />
-                                </Link>
+                                </span>
                            </div>
                        </div>
                     </motion.div>
@@ -340,6 +461,13 @@ export const ProjectsTeaser = ({ projects }: { projects: Project[] }) => {
              </Link>
           </div>
        </div>
+
+       {/* Modal */}
+       <AnimatePresence>
+            {selectedProject && (
+                <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
+            )}
+       </AnimatePresence>
     </section>
   );
 };
@@ -397,6 +525,7 @@ export const BlogTeaser = ({ posts }: { posts: BlogPost[] }) => {
 // --- PROJECTS PAGE (MOSAIC/MASONRY FEEL) ---
 export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], portfolioUrl?: string }) => {
   const [filter, setFilter] = useState('all');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const categories = ['all', ...Array.from(new Set(projects.map(p => p.category)))];
 
   const filteredProjects = filter === 'all' 
@@ -446,9 +575,6 @@ export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], 
         >
           <AnimatePresence mode='popLayout'>
             {filteredProjects.map((project, idx) => {
-              // Creating a pattern: Every 4th item (0, 4, 8) spans 2 columns
-              // This creates a nice irregular grid
-              const isLarge = idx % 4 === 0 || idx % 4 === 3; // Example: 0 (big), 1, 2, 3 (big)
               const spanClass = (idx % 4 === 0) ? "md:col-span-2" : "";
 
               return (
@@ -458,7 +584,8 @@ export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], 
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className={`group relative rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 hover:border-blue-500/50 transition-all duration-300 ${spanClass}`}
+                  className={`group relative rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 hover:border-blue-500/50 transition-all duration-300 ${spanClass} cursor-pointer`}
+                  onClick={() => setSelectedProject(project)}
                 >
                     <img 
                       src={project.image_url} 
@@ -473,19 +600,6 @@ export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], 
                             <h3 className="text-2xl font-bold text-white mb-4">{project.title}</h3>
                             <p className="text-neutral-300 text-sm mb-6 line-clamp-3">{project.description}</p>
                             
-                            <div className="flex justify-center gap-4">
-                                {project.demo_url && (
-                                    <a href={project.demo_url} target="_blank" rel="noreferrer" className="p-3 bg-blue-600 rounded-full text-white hover:bg-blue-500 transition-transform hover:scale-110">
-                                        <ExternalLink className="w-5 h-5" />
-                                    </a>
-                                )}
-                                {project.repo_url && (
-                                    <a href={project.repo_url} target="_blank" rel="noreferrer" className="p-3 bg-neutral-800 rounded-full text-white hover:bg-neutral-700 transition-transform hover:scale-110">
-                                        <Github className="w-5 h-5" />
-                                    </a>
-                                )}
-                            </div>
-
                             <div className="flex flex-wrap gap-2 justify-center mt-6">
                                 {project.tags.slice(0, 3).map(tag => (
                                     <span key={tag} className="text-xs px-2 py-1 bg-white/10 text-white rounded-md backdrop-blur-sm">
@@ -516,6 +630,13 @@ export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], 
             </div>
          )}
       </div>
+
+       {/* Modal */}
+       <AnimatePresence>
+            {selectedProject && (
+                <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
+            )}
+       </AnimatePresence>
     </div>
   );
 };

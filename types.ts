@@ -37,7 +37,8 @@ export interface Project {
   id: string;
   title: string;
   description: string;
-  image_url: string;
+  image_url: string; // Main Thumbnail
+  gallery?: string[]; // Array of images for carousel
   tags: string[];
   demo_url?: string;
   repo_url?: string;

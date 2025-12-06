@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, Briefcase, Code, Folder, FileText, User, Upload } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, Briefcase, Code, Folder, FileText, User, Upload, Image as ImageIcon } from 'lucide-react';
 import { Profile, Experience, Skill, Project, BlogPost } from '../types';
 import { Button, Input, Textarea, Card, Label } from './ui';
 import { db } from '../services/database';
@@ -64,7 +64,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
     const emptyModels: any = {
       experience: { id: newId, role: '', company: '', period: '', description: '', type: 'work' },
       skills: { id: newId, name: '', category: 'Frontend', level: 50 },
-      projects: { id: newId, title: '', description: '', image_url: '', tags: [], category: 'Web', demo_url: '', repo_url: '' },
+      projects: { id: newId, title: '', description: '', image_url: '', gallery: [], tags: [], category: 'Web', demo_url: '', repo_url: '' },
       blog: { id: newId, title: '', excerpt: '', content: '', cover_image: '', created_at: new Date().toISOString(), category: 'General' }
     };
     setFormData(emptyModels[type]);
@@ -103,14 +103,21 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
     }
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, fieldKey: string) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, fieldKey: string, isArray: boolean = false) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
     try {
         const url = await db.uploadFile(file);
-        setFormData((prev: any) => ({ ...prev, [fieldKey]: url }));
+        if (isArray) {
+            // Append to array (for gallery)
+            const currentArray = Array.isArray(formData[fieldKey]) ? formData[fieldKey] : [];
+            setFormData((prev: any) => ({ ...prev, [fieldKey]: [...currentArray, url] }));
+        } else {
+            // Replace string (for single image)
+            setFormData((prev: any) => ({ ...prev, [fieldKey]: url }));
+        }
     } catch (err: any) {
         console.error("Upload failed details:", err);
         // Tampilkan pesan error yang lebih spesifik kepada user
@@ -118,6 +125,12 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
     } finally {
         setUploading(false);
     }
+  };
+
+  const removeFromGallery = (fieldKey: string, indexToRemove: number) => {
+     const currentArray = formData[fieldKey] || [];
+     const newArray = currentArray.filter((_: any, idx: number) => idx !== indexToRemove);
+     setFormData({...formData, [fieldKey]: newArray});
   };
 
   // --- RENDER CONTENT ---
@@ -135,13 +148,50 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
              {Object.keys(formData).map((key) => {
                 if (key === 'id') return null;
                 
-                // Image/File Upload Fields
+                // GALLERY HANDLING (New)
+                if (key === 'gallery') {
+                    const galleryImages = Array.isArray(formData[key]) ? formData[key] : [];
+                    return (
+                        <div key={key} className="space-y-2 border border-neutral-800 p-4 rounded-lg bg-neutral-950/50">
+                            <Label>Project Gallery (Carousel Images)</Label>
+                            <p className="text-xs text-neutral-500 mb-2">Upload multiple images to show in the project popup.</p>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                {galleryImages.map((img: string, idx: number) => (
+                                    <div key={idx} className="relative group aspect-square rounded overflow-hidden border border-neutral-700">
+                                        <img src={img} alt="" className="w-full h-full object-cover" />
+                                        <button 
+                                            onClick={() => removeFromGallery(key, idx)}
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </div>
+                                ))}
+                                <label className="flex flex-col items-center justify-center aspect-square border-2 border-dashed border-neutral-700 rounded-lg hover:bg-neutral-800 cursor-pointer transition-colors">
+                                    <Plus className="w-6 h-6 text-neutral-500" />
+                                    <span className="text-xs text-neutral-500 mt-2">Add Image</span>
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        onChange={(e) => handleFileUpload(e, key, true)}
+                                        accept="image/*"
+                                    />
+                                </label>
+                            </div>
+                        </div>
+                    )
+                }
+
+                // Image/File Upload Fields (Single)
                 // Detects _url suffix, 'image' in name, or specific keys like 'cover_image'
                 if (key.includes('_url') || key.includes('image') || key === 'cover_image') {
                     const isDoc = key.includes('cv') || key.includes('pdf') || key.includes('portfolio');
+                    const label = key === 'image_url' ? 'Thumbnail / Cover Image' : key.replace('_', ' ');
+                    
                     return (
                         <div key={key} className="space-y-2">
-                            <Label className="capitalize">{key.replace('_', ' ')}</Label>
+                            <Label className="capitalize">{label}</Label>
                             <div className="flex gap-2">
                                 <Input
                                     value={formData[key] || ''}
@@ -158,7 +208,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                                         <input
                                             type="file"
                                             className="absolute inset-0 opacity-0 cursor-pointer"
-                                            onChange={(e) => handleFileUpload(e, key)}
+                                            onChange={(e) => handleFileUpload(e, key, false)}
                                             accept={isDoc ? '.pdf,.doc,.docx' : 'image/*'}
                                         />
                                     </Button>
@@ -226,9 +276,6 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                         </div>
                     )
                 }
-                // REMOVED: Specific dropdown for skills category
-                // This allows the default Input renderer (below) to handle 'category' for skills,
-                // enabling free text editing.
 
                 return (
                   <div key={key}>
@@ -336,6 +383,9 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                        <div>
                            <h4 className="font-bold text-neutral-200">{item.role || item.name || item.title}</h4>
                            <p className="text-sm text-neutral-500">{item.company || item.category || item.created_at}</p>
+                           {activeTab === 'projects' && (item.gallery?.length > 0) && (
+                                <span className="text-xs text-blue-400 flex items-center gap-1 mt-1"><ImageIcon className="w-3 h-3" /> {item.gallery.length} photos</span>
+                           )}
                        </div>
                     </div>
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

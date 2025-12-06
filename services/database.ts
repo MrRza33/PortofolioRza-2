@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import { Profile, Experience, Skill, Project, BlogPost, Comment } from '../types';
 
@@ -16,52 +17,118 @@ const MOCK_DATA = {
   profile: {
     id: 'd9b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d8',
     name: 'Alex Pradana',
-    tagline: 'Senior Fullstack Engineer & UI Designer',
-    bio: 'Saya adalah pengembang web yang berdedikasi dengan spesialisasi dalam membangun pengalaman digital yang luar biasa. Saat ini fokus pada React, TypeScript, dan desain sistem yang scalable. Saya suka memecahkan masalah kompleks dan mengubahnya menjadi antarmuka yang sederhana dan indah.',
+    tagline: 'Digital Marketer & Creative Generalist',
+    bio: 'Saya membantu brand bertumbuh melalui strategi digital yang terukur dan visual yang memikat. Sebagai seorang Creative Generalist dengan dasar teknis WordPress, saya menjembatani kesenjangan antara desain yang estetis, konten yang engaging, dan performa website yang optimal.',
     avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?fit=crop&w=400&h=400',
     logo_url: '', 
     cv_url: '#',
     portfolio_url: '#',
-    years_experience: '5+',
-    brands_handled: '12+',
+    years_experience: '4+',
+    brands_handled: '20+',
     email: 'alex@example.com',
     github: 'https://github.com',
     linkedin: 'https://linkedin.com'
   },
   experience: [
-    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', role: 'Senior Frontend Engineer', company: 'Tech Unicorn Indonesia', period: '2022 - Sekarang', description: 'Memimpin tim frontend beranggotakan 8 orang, menginisiasi migrasi ke Next.js App Router, dan meningkatkan skor Core Web Vitals sebesar 40%.', type: 'work' },
-    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', role: 'Software Engineer', company: 'Global Digital Agency', period: '2020 - 2022', description: 'Mengembangkan aplikasi web responsif untuk klien internasional. Implementasi design system menggunakan Tailwind CSS dan Storybook.', type: 'work' },
-    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', role: 'Junior Web Developer', company: 'StartUp Studio', period: '2019 - 2020', description: 'Bekerja pada pengembangan fitur backend menggunakan Node.js dan Express, serta integrasi API pihak ketiga.', type: 'work' },
-    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', role: 'Sarjana Teknik Informatika', company: 'Institut Teknologi Bandung', period: '2015 - 2019', description: 'Lulus dengan predikat Cum Laude (GPA 3.8). Ketua Himpunan Mahasiswa Informatika 2018.', type: 'education' },
-    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d5', role: 'Google Developer Certification', company: 'Google Developers', period: '2023', description: 'Associate Android Developer Certification & Google Cloud Professional Data Engineer.', type: 'education' }
+    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', role: 'Digital Marketing Lead', company: 'Growth Agency Indonesia', period: '2022 - Sekarang', description: 'Mengelola budget iklan bulanan IDR 100jt+ untuk klien lintas industri. Meningkatkan ROAS (Return on Ad Spend) rata-rata sebesar 300% melalui optimasi Meta Ads dan Google Ads.', type: 'work' },
+    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', role: 'Content Specialist & Web Admin', company: 'Creative Studio', period: '2020 - 2022', description: 'Bertanggung jawab atas strategi konten media sosial dan maintenance website klien berbasis WordPress. Berhasil menaikkan organic traffic website sebesar 150% dalam 1 tahun.', type: 'work' },
+    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', role: 'Freelance WordPress Developer', company: 'Self Employed', period: '2019 - 2020', description: 'Membangun landing page dan company profile untuk UMKM menggunakan Elementor dan kustomisasi CSS ringan.', type: 'work' },
+    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', role: 'S1 Ilmu Komunikasi', company: 'Universitas Indonesia', period: '2015 - 2019', description: 'Fokus studi pada Periklanan dan Hubungan Masyarakat. Lulus dengan predikat Cum Laude.', type: 'education' },
+    { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d5', role: 'Google Ads & Analytics Certified', company: 'Google Skillshop', period: '2023', description: 'Sertifikasi profesional untuk Search, Display, dan Google Analytics 4 (GA4).', type: 'education' }
   ],
   skills: [
-    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', name: 'React & Next.js', category: 'frontend', level: 95 },
-    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', name: 'TypeScript', category: 'frontend', level: 90 },
-    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', name: 'Tailwind CSS', category: 'frontend', level: 95 },
-    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', name: 'Framer Motion', category: 'frontend', level: 85 },
-    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d5', name: 'Node.js', category: 'backend', level: 85 },
-    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d6', name: 'PostgreSQL', category: 'backend', level: 80 },
-    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d7', name: 'Supabase', category: 'backend', level: 85 },
-    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d8', name: 'Docker', category: 'tools', level: 75 },
-    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d9', name: 'Figma', category: 'tools', level: 85 },
-    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d0', name: 'Git & CI/CD', category: 'tools', level: 90 },
-    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7da', name: 'Team Leadership', category: 'soft', level: 85 },
-    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7db', name: 'Public Speaking', category: 'soft', level: 80 }
+    // Marketing
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', name: 'SEO & SEM', category: 'Marketing', level: 90 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', name: 'Meta Ads (FB/IG)', category: 'Marketing', level: 95 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', name: 'Google Analytics 4', category: 'Marketing', level: 85 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', name: 'Copywriting', category: 'Marketing', level: 90 },
+    // Creative / Tools
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d9', name: 'Canva & Photoshop', category: 'Creative', level: 85 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d0', name: 'Video Editing (CapCut/Premiere)', category: 'Creative', level: 80 },
+    // Tech / Web
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d5', name: 'WordPress', category: 'Web Dev', level: 90 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d6', name: 'Elementor Pro', category: 'Web Dev', level: 95 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d7', name: 'HTML/CSS Basic', category: 'Web Dev', level: 75 },
+    // Soft Skills
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7da', name: 'Strategic Planning', category: 'Soft Skills', level: 85 },
+    { id: 's1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7db', name: 'Client Management', category: 'Soft Skills', level: 90 }
   ],
   projects: [
-    { id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', title: 'E-Commerce Dashboard', description: 'Dashboard analitik real-time untuk platform e-commerce menggunakan Next.js, Tremor, dan Supabase. Fitur visualisasi data penjualan harian dan manajemen inventaris.', image_url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80', tags: ['React', 'Next.js', 'Supabase'], category: 'Web App', demo_url: '#', repo_url: '#' },
-    { id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', title: 'Travel Booking App', description: 'Aplikasi mobile cross-platform untuk pemesanan tiket perjalanan dan hotel dengan integrasi payment gateway Midtrans.', image_url: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=800&q=80', tags: ['React Native', 'Node.js', 'Redux'], category: 'Mobile', demo_url: '#', repo_url: '#' },
-    { id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', title: 'AI Content Generator', description: 'Platform SaaS untuk generate konten marketing, caption sosmed, dan artikel blog menggunakan Google Gemini API.', image_url: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80', tags: ['AI', 'Python', 'FastAPI', 'Gemini'], category: 'AI', demo_url: '#', repo_url: '#' },
-    { id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', title: 'Health Tracker', description: 'Aplikasi pelacak kesehatan pribadi yang terhubung dengan smartwatch untuk memantau detak jantung dan kualitas tidur.', image_url: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80', tags: ['Flutter', 'Firebase'], category: 'Mobile', demo_url: '#', repo_url: '#' },
-    { id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d5', title: 'Finance Management', description: 'Web app manajemen keuangan pribadi dengan fitur budgeting, tracking pengeluaran, dan export laporan bulanan.', image_url: 'https://images.unsplash.com/photo-1554224155-98406856d03f?auto=format&fit=crop&w=800&q=80', tags: ['Vue.js', 'Laravel', 'MySQL'], category: 'Web App', demo_url: '#', repo_url: '#' },
-    { id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d6', title: 'Smart Home Hub', description: 'Interface kontrol rumah pintar berbasis IoT untuk mengatur lampu, suhu, dan keamanan rumah secara terpusat.', image_url: 'https://images.unsplash.com/photo-1558002038-109177381792?auto=format&fit=crop&w=800&q=80', tags: ['IoT', 'React', 'MQTT'], category: 'IoT', demo_url: '#', repo_url: '#' }
+    { 
+      id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', 
+      title: 'Growth Marketing UMKM Fashion', 
+      description: 'Kampanye digital 360 derajat untuk brand fashion lokal. Kombinasi SEO on-page, strategi konten Instagram Reels, dan Meta Ads conversion. Menghasilkan kenaikan omzet 200% dalam 3 bulan.', 
+      image_url: 'https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=800&q=80', 
+      gallery: [
+        'https://images.unsplash.com/photo-1556740758-90de374c12ad?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80'
+      ],
+      tags: ['Meta Ads', 'SEO', 'Content Strategy'], 
+      category: 'Digital Marketing', 
+      demo_url: '#', 
+      repo_url: '' 
+    },
+    { 
+      id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', 
+      title: 'Company Profile Corporate', 
+      description: 'Pengembangan website perusahaan konstruksi menggunakan WordPress dan Elementor. Fokus pada kecepatan loading (Core Web Vitals) dan tampilan profesional yang mobile-friendly.', 
+      image_url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80',
+      gallery: [],
+      tags: ['WordPress', 'Elementor', 'CSS'], 
+      category: 'WordPress Dev', 
+      demo_url: '#', 
+      repo_url: '' 
+    },
+    { 
+      id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', 
+      title: 'Rebranding Coffee Shop', 
+      description: 'Proyek rebranding visual identitas untuk kedai kopi, mencakup desain logo, menu, packaging, dan feed Instagram. Menciptakan tone of voice yang baru untuk menjangkau Gen Z.', 
+      image_url: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=800&q=80', 
+      gallery: [],
+      tags: ['Branding', 'Photoshop', 'Social Media'], 
+      category: 'Creative', 
+      demo_url: '#', 
+      repo_url: '' 
+    },
+    { 
+      id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', 
+      title: 'Lead Generation Property', 
+      description: 'Strategi Google Ads (SEM) untuk developer properti. Mengoptimalkan landing page dan keyword bidding untuk mendapatkan leads berkualitas tinggi dengan CPC rendah.', 
+      image_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=800&q=80', 
+      gallery: [],
+      tags: ['Google Ads', 'Landing Page', 'Copywriting'], 
+      category: 'Performance', 
+      demo_url: '#', 
+      repo_url: '' 
+    },
+    { 
+      id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d5', 
+      title: 'Personal Blog Traveler', 
+      description: 'Pembuatan website blog travel dengan fitur integrasi peta dan galeri foto. Kustomisasi tema WordPress agar ringan dan SEO friendly untuk keyword "Travel Budget".', 
+      image_url: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?auto=format&fit=crop&w=800&q=80', 
+      gallery: [],
+      tags: ['WordPress', 'SEO', 'Blogging'], 
+      category: 'WordPress Dev', 
+      demo_url: '#', 
+      repo_url: '' 
+    },
+    { 
+      id: 'p1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d6', 
+      title: 'Viral TikTok Campaign', 
+      description: 'Konsep dan eksekusi kampanye video pendek untuk peluncuran produk snack. Mencapai 1 juta views organik dalam seminggu melalui storytelling dan penggunaan sound trending.', 
+      image_url: 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&w=800&q=80', 
+      gallery: [],
+      tags: ['TikTok', 'Video Editing', 'Viral Marketing'], 
+      category: 'Social Media', 
+      demo_url: '#', 
+      repo_url: '' 
+    }
   ],
   posts: [
-    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', title: 'Membangun Arsitektur Microfrontends', excerpt: 'Panduan lengkap strategi memecah monolith frontend menjadi microfrontends yang scalable dan mudah dipelihara oleh tim besar.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1504639725590-34d0984388bd?auto=format&fit=crop&w=800&q=80', created_at: '2023-10-15', category: 'Engineering' },
-    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', title: 'Masa Depan AI dalam Web Development', excerpt: 'Bagaimana Artificial Intelligence dan LLM mengubah cara kita menulis kode, mendesain antarmuka, dan mengoptimalkan UX.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=80', created_at: '2023-11-20', category: 'AI' },
-    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', title: 'Tutorial React Server Components', excerpt: 'Mendalami konsep Server Components pada React 18 dan Next.js 13+ untuk performa aplikasi yang lebih baik.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=800&q=80', created_at: '2024-01-10', category: 'Tutorial' },
-    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', title: 'Optimasi Core Web Vitals 2024', excerpt: 'Tips dan trik terbaru untuk meningkatkan skor INP (Interaction to Next Paint) dan LCP website Anda.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80', created_at: '2024-02-05', category: 'Performance' }
+    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', title: 'Strategi SEO di Tahun 2024', excerpt: 'Algoritma Google terus berubah. Simak panduan lengkap agar website Anda tetap berada di halaman pertama pencarian.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1571721795195-a2ca2d337096?auto=format&fit=crop&w=800&q=80', created_at: '2023-10-15', category: 'SEO' },
+    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', title: 'WordPress vs Web Builder Lain', excerpt: 'Mengapa WordPress masih menjadi raja CMS untuk bisnis jangka panjang dibandingkan Wix atau Squarespace.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=80', created_at: '2023-11-20', category: 'WordPress' },
+    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', title: 'Psikologi Warna dalam Branding', excerpt: 'Bagaimana pemilihan warna logo mempengaruhi persepsi pelanggan terhadap bisnis Anda secara bawah sadar.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=800&q=80', created_at: '2024-01-10', category: 'Branding' },
+    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', title: 'Copywriting yang Menjual', excerpt: 'Tips menulis headline dan CTA (Call to Action) yang terbukti meningkatkan konversi penjualan.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1519337265831-281ec6cc8514?auto=format&fit=crop&w=800&q=80', created_at: '2024-02-05', category: 'Copywriting' }
   ]
 };
 
