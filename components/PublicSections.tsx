@@ -97,9 +97,19 @@ export const Hero = ({ profile }: { profile: Profile }) => {
           transition={{ duration: 0.8 }}
           className="flex-1 relative max-w-md md:max-w-lg"
         >
+          {/* Efek Glow di belakang */}
           <div className="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full pointer-events-none" />
-          <div className="relative z-10 rounded-2xl overflow-hidden border-2 border-neutral-800 shadow-2xl">
-            <img src={profile.avatar_url} alt={profile.name} className="w-full h-auto object-cover transform hover:scale-105 transition-transform duration-700" />
+          
+          {/* Container Gambar tanpa border */}
+          <div className="relative z-10 overflow-hidden">
+            <img 
+                src={profile.avatar_url} 
+                alt={profile.name} 
+                className="w-full h-auto object-cover transform hover:scale-105 transition-transform duration-700 rounded-2xl" 
+            />
+            
+            {/* Overlay Gradient untuk menyatukan dengan background */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent rounded-2xl pointer-events-none" />
           </div>
         </motion.div>
       </div>
