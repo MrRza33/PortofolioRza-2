@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import { Profile, Experience, Skill, Project, BlogPost, Comment } from '../types';
+import { Profile, Experience, Skill, Project, BlogPost, Comment, ContactMessage, Subscriber } from '../types';
 
 // Supabase Configuration from User Input
 const SUPABASE_URL = 'https://iqxushprpibrpuuzmooj.supabase.co';
@@ -129,6 +129,12 @@ const MOCK_DATA = {
     { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', title: 'WordPress vs Web Builder Lain', excerpt: 'Mengapa WordPress masih menjadi raja CMS untuk bisnis jangka panjang dibandingkan Wix atau Squarespace.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=80', created_at: '2023-11-20', category: 'WordPress' },
     { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', title: 'Psikologi Warna dalam Branding', excerpt: 'Bagaimana pemilihan warna logo mempengaruhi persepsi pelanggan terhadap bisnis Anda secara bawah sadar.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=800&q=80', created_at: '2024-01-10', category: 'Branding' },
     { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', title: 'Copywriting yang Menjual', excerpt: 'Tips menulis headline dan CTA (Call to Action) yang terbukti meningkatkan konversi penjualan.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1519337265831-281ec6cc8514?auto=format&fit=crop&w=800&q=80', created_at: '2024-02-05', category: 'Copywriting' }
+  ],
+  messages: [
+    { id: 'm1', name: 'Client Example', email: 'client@example.com', message: 'Halo, saya ingin menanyakan tentang jasa konsultasi SEO.', created_at: new Date().toISOString() }
+  ],
+  subscribers: [
+    { id: 'sub1', email: 'fan@example.com', created_at: new Date().toISOString() }
   ]
 };
 
@@ -272,7 +278,6 @@ export const db = {
   // COMMENTS
   async getComments(postId: string): Promise<Comment[]> {
     if (isSupabaseConfigured && supabase) {
-        // Assume table 'comments' exists
         const { data, error } = await supabase
             .from('comments')
             .select('*')
@@ -289,6 +294,49 @@ export const db = {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
     const { error } = await supabase.from('comments').insert(comment);
     if (error) throw new Error(error.message);
+  },
+
+  // MESSAGES (INBOX)
+  async getMessages(): Promise<ContactMessage[]> {
+     if (isSupabaseConfigured && supabase) {
+        const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: false });
+        if (data && data.length > 0) return data as any[];
+     }
+     return MOCK_DATA.messages as ContactMessage[];
+  },
+
+  async saveMessage(message: Omit<ContactMessage, 'id' | 'created_at'>): Promise<void> {
+     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+     const { error } = await supabase.from('messages').insert(message);
+     if (error) throw new Error(error.message);
+  },
+
+  async deleteMessage(id: string): Promise<void> {
+     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+     const { error } = await supabase.from('messages').delete().eq('id', id);
+     if (error) throw new Error(error.message);
+  },
+
+  // SUBSCRIBERS
+  async getSubscribers(): Promise<Subscriber[]> {
+     if (isSupabaseConfigured && supabase) {
+        const { data } = await supabase.from('subscribers').select('*').order('created_at', { ascending: false });
+        if (data && data.length > 0) return data as any[];
+     }
+     return MOCK_DATA.subscribers as Subscriber[];
+  },
+
+  async saveSubscriber(email: string): Promise<void> {
+     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+     // Cek duplikat jika perlu, tapi Supabase unique constraint lebih baik
+     const { error } = await supabase.from('subscribers').insert({ email });
+     if (error) throw new Error(error.message);
+  },
+
+  async deleteSubscriber(id: string): Promise<void> {
+     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+     const { error } = await supabase.from('subscribers').delete().eq('id', id);
+     if (error) throw new Error(error.message);
   },
 
   async uploadFile(file: File, bucket: string = 'portfolio'): Promise<string> {

@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, Briefcase, Code, Folder, FileText, User, Upload, Image as ImageIcon } from 'lucide-react';
-import { Profile, Experience, Skill, Project, BlogPost } from '../types';
+import { Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, Briefcase, Code, Folder, FileText, User, Upload, Image as ImageIcon, Mail, Users, Calendar } from 'lucide-react';
+import { Profile, Experience, Skill, Project, BlogPost, ContactMessage, Subscriber } from '../types';
 import { Button, Input, Textarea, Card, Label } from './ui';
 import { db } from '../services/database';
 
-type Tab = 'profile' | 'experience' | 'skills' | 'projects' | 'blog';
+type Tab = 'profile' | 'experience' | 'skills' | 'projects' | 'blog' | 'messages' | 'subscribers';
 
 interface AdminProps {
   data: {
@@ -15,6 +15,8 @@ interface AdminProps {
     skills: Skill[];
     projects: Project[];
     posts: BlogPost[];
+    messages: ContactMessage[];
+    subscribers: Subscriber[];
   };
   refreshData: () => void;
   onLogout: () => void;
@@ -67,8 +69,11 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
       projects: { id: newId, title: '', description: '', image_url: '', gallery: [], tags: [], category: 'Web', demo_url: '', repo_url: '' },
       blog: { id: newId, title: '', excerpt: '', content: '', cover_image: '', created_at: new Date().toISOString(), category: 'General' }
     };
-    setFormData(emptyModels[type]);
-    setIsEditing('new');
+    
+    if (emptyModels[type]) {
+        setFormData(emptyModels[type]);
+        setIsEditing('new');
+    }
   };
 
   const handleSave = async () => {
@@ -96,6 +101,8 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
       else if (activeTab === 'skills') await db.deleteSkill(id);
       else if (activeTab === 'projects') await db.deleteProject(id);
       else if (activeTab === 'blog') await db.deletePost(id);
+      else if (activeTab === 'messages') await db.deleteMessage(id);
+      else if (activeTab === 'subscribers') await db.deleteSubscriber(id);
       refreshData();
     } catch (e: any) {
       console.error(e);
@@ -358,6 +365,75 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
           </div>
         );
 
+      case 'messages':
+        return (
+            <div className="space-y-6">
+                 <h3 className="text-2xl font-bold text-white">Inbox Pesan</h3>
+                 <div className="grid gap-4">
+                    {data.messages.map((msg) => (
+                        <Card key={msg.id} className="p-6 bg-neutral-900 border-neutral-800 group hover:border-blue-500/30 transition-colors">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-blue-600/10 flex items-center justify-center text-blue-500 font-bold">
+                                        {msg.name.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-white">{msg.name}</h4>
+                                        <p className="text-sm text-blue-400">{msg.email}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                     <span className="text-xs text-neutral-500 flex items-center gap-1">
+                                         <Calendar className="w-3 h-3" />
+                                         {new Date(msg.created_at).toLocaleDateString()}
+                                     </span>
+                                     <Button size="sm" variant="danger" onClick={() => handleDelete(msg.id)}><Trash2 className="w-4 h-4" /></Button>
+                                </div>
+                            </div>
+                            <div className="pl-13 border-l-2 border-neutral-800 pl-4 ml-5">
+                                <p className="text-neutral-300 whitespace-pre-line">{msg.message}</p>
+                            </div>
+                        </Card>
+                    ))}
+                    {data.messages.length === 0 && <p className="text-center text-neutral-500 py-12">Belum ada pesan masuk.</p>}
+                 </div>
+            </div>
+        )
+
+      case 'subscribers':
+        return (
+             <div className="space-y-6">
+                 <div className="flex justify-between items-center">
+                    <h3 className="text-2xl font-bold text-white">Subscribers Newsletter ({data.subscribers.length})</h3>
+                 </div>
+                 <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-neutral-800 text-neutral-500 text-sm">
+                                <th className="py-3 px-4">Email</th>
+                                <th className="py-3 px-4">Bergabung Pada</th>
+                                <th className="py-3 px-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-neutral-800">
+                            {data.subscribers.map((sub) => (
+                                <tr key={sub.id} className="hover:bg-neutral-800/50">
+                                    <td className="py-3 px-4 text-white font-medium">{sub.email}</td>
+                                    <td className="py-3 px-4 text-neutral-400 text-sm">{new Date(sub.created_at).toLocaleDateString()}</td>
+                                    <td className="py-3 px-4 text-right">
+                                        <Button size="sm" variant="ghost" className="text-red-500 hover:text-red-400 hover:bg-red-500/10" onClick={() => handleDelete(sub.id)}>
+                                            <Trash2 className="w-4 h-4" />
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    {data.subscribers.length === 0 && <p className="text-center text-neutral-500 py-12">Belum ada subscriber.</p>}
+                 </div>
+             </div>
+        )
+
       case 'experience':
       case 'skills':
       case 'projects':
@@ -418,6 +494,8 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
               { id: 'skills', icon: Code, label: 'Skills' },
               { id: 'projects', icon: Folder, label: 'Projects' },
               { id: 'blog', icon: FileText, label: 'Blog' },
+              { id: 'messages', icon: Mail, label: 'Inbox Messages' },
+              { id: 'subscribers', icon: Users, label: 'Newsletter Subs' },
             ].map(item => (
               <button
                 key={item.id}

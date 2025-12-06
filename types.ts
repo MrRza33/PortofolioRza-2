@@ -63,6 +63,20 @@ export interface Comment {
   created_at: string;
 }
 
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  created_at: string;
+}
+
+export interface Subscriber {
+  id: string;
+  email: string;
+  created_at: string;
+}
+
 export interface UserSession {
   user: {
     email: string;

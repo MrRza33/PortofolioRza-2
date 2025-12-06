@@ -3,7 +3,7 @@ import { HashRouter as Router, Routes, Route, Navigate, useLocation, Link, useNa
 import { db } from './services/database';
 import { Hero, About, ExperienceSection, Skills, ProjectsTeaser, BlogTeaser, ProjectsPage, BlogPage, BlogDetail, ContactPage } from './components/PublicSections';
 import { AdminDashboard } from './components/AdminDashboard';
-import { Profile, Experience, Skill, Project, BlogPost } from './types';
+import { Profile, Experience, Skill, Project, BlogPost, ContactMessage, Subscriber } from './types';
 import { Button, Input, Card } from './components/ui';
 import { Loader2, Download, Home, Menu, X, ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -14,7 +14,8 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
-    const isLoginPage = location.pathname === '/login';
+    // Update deteksi halaman login ke rute rahasia
+    const isLoginPage = location.pathname === '/portalreza';
     const isHomePage = location.pathname === '/';
 
     useEffect(() => {
@@ -81,7 +82,7 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
                             <img src={profile.logo_url} alt="Logo" className="h-10 w-auto object-contain transition-transform group-hover:scale-105" />
                         ) : (
                             <div className="text-2xl font-bold tracking-tighter font-display">
-                                <span className="text-white">Alex</span>
+                                <span className="text-white">Reza</span>
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">.Dev</span>
                             </div>
                         )}
@@ -119,13 +120,7 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
                     
                     {/* Action Buttons (Desktop) */}
                     <div className="hidden md:flex items-center gap-4">
-                        {!isLoginPage && (
-                            <Link to="/login">
-                                <Button variant="outline" size="sm" className="rounded-full border-neutral-700 bg-black/50 hover:bg-neutral-800 hover:text-white hover:border-neutral-600 transition-all">
-                                    Admin
-                                </Button>
-                            </Link>
-                        )}
+                        {/* Tombol Admin DIHAPUS agar tersembunyi */}
                         {isLoginPage && (
                             <Link to="/">
                                 <Button variant="ghost" size="sm" className="gap-2">
@@ -190,19 +185,8 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
                                 </motion.div>
                             ))}
                         </nav>
-
-                        <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.3 }}
-                            className="mt-8 pt-8 border-t border-white/10 flex flex-col gap-4"
-                        >
-                             <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                                <Button className="w-full justify-between" variant="outline">
-                                    Admin Dashboard <Home className="w-4 h-4" />
-                                </Button>
-                             </Link>
-                        </motion.div>
+                        
+                        {/* Link Admin di Mobile Menu juga DIHAPUS */}
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -225,8 +209,7 @@ const Footer = () => {
                      <Link to="/contact" className="text-neutral-400 hover:text-white transition-colors">Contact</Link>
                  </div>
                  <div className="text-neutral-600 text-sm flex flex-col gap-2">
-                    <p>&copy; {new Date().getFullYear()} Alex Pradana. All rights reserved.</p>
-                    <p className="text-xs">Built with React, Supabase & Tailwind CSS</p>
+                    <p>&copy; {new Date().getFullYear()} Reza. All rights reserved.</p>
                  </div>
             </div>
         </footer>
@@ -265,8 +248,8 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-black to-black pointer-events-none" />
             <Card className="w-full max-w-md p-8 bg-neutral-900/80 border-neutral-800 shadow-2xl backdrop-blur-md relative z-10">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-white mb-2 font-display">Admin Portal</h1>
-                    <p className="text-neutral-400">Masuk untuk mengelola konten website</p>
+                    <h1 className="text-3xl font-bold text-white mb-2 font-display">Portal Reza</h1>
+                    <p className="text-neutral-400">Restricted Access Only</p>
                 </div>
                 {error && <div className="p-3 mb-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded text-sm text-center">{error}</div>}
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -274,7 +257,7 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
                         <label className="text-sm font-medium text-neutral-300">Email Address</label>
                         <Input 
                             type="email" 
-                            placeholder="name@example.com" 
+                            placeholder="admin@example.com" 
                             value={email} 
                             onChange={e => setEmail(e.target.value)} 
                             required 
@@ -311,12 +294,16 @@ export default function App() {
         skills: Skill[];
         projects: Project[];
         posts: BlogPost[];
+        messages: ContactMessage[];
+        subscribers: Subscriber[];
     }>({
         profile: null,
         experience: [],
         skills: [],
         projects: [],
-        posts: []
+        posts: [],
+        messages: [],
+        subscribers: []
     });
 
     const initApp = async () => {
@@ -328,14 +315,17 @@ export default function App() {
             }
 
             // 2. Fetch Data
-            const [profile, experience, skills, projects, posts] = await Promise.all([
+            const [profile, experience, skills, projects, posts, messages, subscribers] = await Promise.all([
                 db.getProfile(),
                 db.getExperiences(),
                 db.getSkills(),
                 db.getProjects(),
-                db.getPosts()
+                db.getPosts(),
+                // Only fetch messages/subs if auth, but for simple architecture we might fetch or return empty
+                db.getMessages(),
+                db.getSubscribers()
             ]);
-            setData({ profile, experience, skills, projects, posts });
+            setData({ profile, experience, skills, projects, posts, messages, subscribers });
         } catch (error) {
             console.error("Failed to load data", error);
         } finally {
@@ -396,10 +386,13 @@ export default function App() {
                         <ContactPage />
                     } />
 
-                    {/* Admin Routes */}
-                    <Route path="/login" element={
+                    {/* Secret Admin Routes */}
+                    {/* Rute Rahasia untuk Login */}
+                    <Route path="/portalreza" element={
                         isAuthenticated ? <Navigate to="/admin" /> : <Login onLogin={() => setIsAuthenticated(true)} />
                     } />
+                    
+                    {/* Dashboard Admin - Redirect ke Home jika belum login (Stealth Mode) */}
                     <Route path="/admin" element={
                         isAuthenticated ? (
                             <AdminDashboard 
@@ -408,9 +401,12 @@ export default function App() {
                                 onLogout={handleLogout} 
                             />
                         ) : (
-                            <Navigate to="/login" />
+                            <Navigate to="/" />
                         )
                     } />
+                    
+                    {/* Tangani rute /login lama agar tidak bisa diakses */}
+                    <Route path="/login" element={<Navigate to="/" />} />
                 </Routes>
                 <Footer />
             </div>

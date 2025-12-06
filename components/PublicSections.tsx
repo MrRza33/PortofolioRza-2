@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useParams } from 'react-router-dom';
-import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, GraduationCap, ArrowRight, Code, Database, Layout, PenTool, Send, CheckCircle, MessageSquare, User, Box, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, GraduationCap, ArrowRight, Code, Database, Layout, PenTool, Send, CheckCircle, MessageSquare, User, Box, X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { Profile, Experience, Skill, Project, BlogPost, Comment } from '../types';
 import { Button, Card, Input, Textarea, Label } from './ui';
 import { db } from '../services/database';
@@ -25,15 +25,53 @@ const staggerContainer = {
 // --- COMPONENTS UTILS ---
 
 const SubscriptionCTA = () => {
+    const [email, setEmail] = useState('');
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+    const handleSubscribe = async () => {
+        if (!email || !email.includes('@')) {
+            alert("Mohon masukkan email yang valid.");
+            return;
+        }
+        setStatus('loading');
+        try {
+            await db.saveSubscriber(email);
+            setStatus('success');
+            setEmail('');
+        } catch (error) {
+            console.error(error);
+            setStatus('error');
+        }
+    };
+
     return (
         <div className="py-16 bg-blue-900/10 border-y border-blue-900/30">
             <div className="container mx-auto px-6 text-center max-w-2xl">
                 <h3 className="text-2xl font-bold text-white mb-4">Berlangganan Newsletter</h3>
                 <p className="text-neutral-400 mb-6">Dapatkan update terbaru tentang artikel teknologi, tutorial coding, dan proyek terbaru saya langsung di inbox Anda.</p>
-                <div className="flex gap-2 flex-col sm:flex-row">
-                    <Input placeholder="Masukkan email Anda" className="bg-black/50 border-neutral-700" />
-                    <Button className="shrink-0 bg-blue-600 hover:bg-blue-500">Subscribe</Button>
-                </div>
+                
+                {status === 'success' ? (
+                    <div className="p-4 bg-green-500/10 text-green-500 rounded-lg flex items-center justify-center gap-2">
+                        <CheckCircle className="w-5 h-5" /> Terima kasih telah berlangganan!
+                    </div>
+                ) : (
+                    <div className="flex gap-2 flex-col sm:flex-row">
+                        <Input 
+                            placeholder="Masukkan email Anda" 
+                            className="bg-black/50 border-neutral-700" 
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                        />
+                        <Button 
+                            className="shrink-0 bg-blue-600 hover:bg-blue-500"
+                            onClick={handleSubscribe}
+                            disabled={status === 'loading'}
+                        >
+                            {status === 'loading' ? 'Menyimpan...' : 'Subscribe'}
+                        </Button>
+                    </div>
+                )}
+                {status === 'error' && <p className="text-red-500 text-sm mt-2">Gagal berlangganan. Pastikan tabel database sudah ada.</p>}
             </div>
         </div>
     );
@@ -481,7 +519,7 @@ export const BlogTeaser = ({ posts }: { posts: BlogPost[] }) => {
        <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Tulisan <span className="text-blue-500">Terbaru</span></h2>
-            <p className="text-neutral-400">Berbagi pengetahuan dan pengalaman seputar teknologi.</p>
+            <p className="text-neutral-400">Berbagi peinformasi, pengetahuan, dan pengalaman seputar teknologi.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
@@ -548,7 +586,7 @@ export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], 
             Portfolio <span className="text-blue-500">Proyek</span>
           </motion.h1>
           <p className="text-neutral-400 max-w-2xl mx-auto">
-            Kumpulan proyek terbaik yang pernah saya kerjakan, mulai dari aplikasi web, mobile, hingga sistem backend yang kompleks.
+            Kumpulan proyek terbaik yang pernah saya kerjakan...
           </p>
         </div>
         
@@ -806,7 +844,7 @@ export const BlogDetail = ({ posts }: { posts: BlogPost[] }) => {
                                 <div>
                                     <Label>Komentar</Label>
                                     <Textarea 
-                                        placeholder="Tulis pendapat Anda..." 
+                                        placeholder="Tulis pesan kamu..." 
                                         required
                                         value={commentContent}
                                         onChange={e => setCommentContent(e.target.value)}
@@ -851,14 +889,24 @@ export const BlogDetail = ({ posts }: { posts: BlogPost[] }) => {
 // --- CONTACT PAGE ---
 export const ContactPage = () => {
     const [submitted, setSubmitted] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({ name: '', email: '', message: '' });
 
     useEffect(() => { window.scrollTo(0, 0); }, []);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitted(true);
-        // Simulate sending
-        setTimeout(() => setSubmitted(false), 3000);
+        setLoading(true);
+        try {
+             await db.saveMessage(formData);
+             setSubmitted(true);
+             setFormData({ name: '', email: '', message: '' });
+        } catch (e: any) {
+             console.error(e);
+             alert("Gagal mengirim pesan. Pastikan tabel database sudah ada.");
+        } finally {
+             setLoading(false);
+        }
     };
 
     return (
@@ -925,18 +973,42 @@ export const ContactPage = () => {
                                     <form onSubmit={handleSubmit} className="space-y-6">
                                         <div>
                                             <Label htmlFor="name">Nama Lengkap</Label>
-                                            <Input id="name" placeholder="John Doe" required className="bg-black/50 border-neutral-700" />
+                                            <Input 
+                                                id="name" 
+                                                placeholder="Reza" 
+                                                required 
+                                                className="bg-black/50 border-neutral-700"
+                                                value={formData.name}
+                                                onChange={e => setFormData({...formData, name: e.target.value})}
+                                            />
                                         </div>
                                         <div>
                                             <Label htmlFor="email">Email</Label>
-                                            <Input id="email" type="email" placeholder="john@example.com" required className="bg-black/50 border-neutral-700" />
+                                            <Input 
+                                                id="email" 
+                                                type="email" 
+                                                placeholder="reza@example.com" 
+                                                required 
+                                                className="bg-black/50 border-neutral-700" 
+                                                value={formData.email}
+                                                onChange={e => setFormData({...formData, email: e.target.value})}
+                                            />
                                         </div>
                                         <div>
                                             <Label htmlFor="message">Pesan</Label>
-                                            <Textarea id="message" placeholder="Ceritakan tentang proyek Anda..." required rows={5} className="bg-black/50 border-neutral-700" />
+                                            <Textarea 
+                                                id="message" 
+                                                placeholder="Ceritakan tentang proyek Anda..." 
+                                                required 
+                                                rows={5} 
+                                                className="bg-black/50 border-neutral-700" 
+                                                value={formData.message}
+                                                onChange={e => setFormData({...formData, message: e.target.value})}
+                                            />
                                         </div>
-                                        <Button type="submit" className="w-full h-12 text-lg font-medium bg-blue-600 hover:bg-blue-500">
-                                            <Send className="w-4 h-4 mr-2" /> Kirim Pesan
+                                        <Button type="submit" className="w-full h-12 text-lg font-medium bg-blue-600 hover:bg-blue-500" disabled={loading}>
+                                            {loading ? <Loader2 className="animate-spin w-4 h-4 mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+                                            Kirim Pesan
                                         </Button>
                                     </form>
                                 )}
