@@ -125,10 +125,83 @@ const MOCK_DATA = {
     }
   ],
   posts: [
-    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', title: 'Strategi SEO di Tahun 2024', excerpt: 'Algoritma Google terus berubah. Simak panduan lengkap agar website Anda tetap berada di halaman pertama pencarian.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1571721795195-a2ca2d337096?auto=format&fit=crop&w=800&q=80', created_at: '2023-10-15', category: 'SEO' },
-    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', title: 'WordPress vs Web Builder Lain', excerpt: 'Mengapa WordPress masih menjadi raja CMS untuk bisnis jangka panjang dibandingkan Wix atau Squarespace.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=80', created_at: '2023-11-20', category: 'WordPress' },
-    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', title: 'Psikologi Warna dalam Branding', excerpt: 'Bagaimana pemilihan warna logo mempengaruhi persepsi pelanggan terhadap bisnis Anda secara bawah sadar.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=800&q=80', created_at: '2024-01-10', category: 'Branding' },
-    { id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', title: 'Copywriting yang Menjual', excerpt: 'Tips menulis headline dan CTA (Call to Action) yang terbukti meningkatkan konversi penjualan.', content: 'Lorem ipsum...', cover_image: 'https://images.unsplash.com/photo-1519337265831-281ec6cc8514?auto=format&fit=crop&w=800&q=80', created_at: '2024-02-05', category: 'Copywriting' }
+    { 
+        id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', 
+        title: 'Strategi SEO di Tahun 2024: Apa yang Berubah?', 
+        excerpt: 'Algoritma Google terus berubah. Simak panduan lengkap agar website Anda tetap berada di halaman pertama pencarian.', 
+        content: `**SEO (Search Engine Optimization)** selalu berkembang. Apa yang berhasil di tahun 2020 mungkin sudah usang sekarang.
+
+### 1. User Experience (UX) adalah Raja
+Google semakin memprioritaskan website yang cepat, mobile-friendly, dan mudah dinavigasi. Pastikan Core Web Vitals Anda hijau!
+
+### 2. Konten Berkualitas Tinggi (E-E-A-T)
+Experience, Expertise, Authoritativeness, dan Trustworthiness. Jangan hanya menulis untuk robot, tulislah untuk manusia.
+
+> "Konten adalah raja, tapi distribusi adalah ratunya."
+
+### 3. AI dan Pencarian
+Dengan munculnya SGE (Search Generative Experience), jawaban langsung di hasil pencarian semakin umum. Struktur konten Anda harus jelas agar mudah dikutip oleh AI.
+
+- Gunakan bullet points
+- Buat kalimat pendek dan padat
+- Jawab pertanyaan pengguna secara langsung`, 
+        cover_image: 'https://images.unsplash.com/photo-1571721795195-a2ca2d337096?auto=format&fit=crop&w=800&q=80', 
+        created_at: '2023-10-15', 
+        category: 'SEO',
+        slug: 'strategi-seo-2024',
+        meta_title: 'Strategi SEO Terbaru 2024 - Panduan Lengkap',
+        meta_description: 'Pelajari cara mendominasi halaman pertama Google dengan strategi SEO terbaru di tahun 2024. Fokus pada UX dan E-E-A-T.',
+        tags: ['SEO', 'Digital Marketing', 'Google']
+    },
+    { 
+        id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d2', 
+        title: 'WordPress vs Web Builder Lain: Mana yang Terbaik?', 
+        excerpt: 'Mengapa WordPress masih menjadi raja CMS untuk bisnis jangka panjang dibandingkan Wix atau Squarespace.', 
+        content: `Memilih platform website adalah investasi jangka panjang.
+
+**WordPress** menawarkan fleksibilitas tanpa batas. Dengan ribuan plugin, Anda bisa membuat apa saja mulai dari blog sederhana hingga toko online kompleks.
+
+Namun, *Wix* atau *Squarespace* menawarkan kemudahan penggunaan (drag-and-drop) yang mungkin lebih cocok untuk pemula yang tidak ingin repot dengan teknis hosting.`, 
+        cover_image: 'https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=80', 
+        created_at: '2023-11-20', 
+        category: 'WordPress',
+        slug: 'wordpress-vs-web-builder',
+        tags: ['CMS', 'WordPress', 'Web Dev']
+    },
+    { 
+        id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d3', 
+        title: 'Psikologi Warna dalam Branding', 
+        excerpt: 'Bagaimana pemilihan warna logo mempengaruhi persepsi pelanggan terhadap bisnis Anda secara bawah sadar.', 
+        content: `Warna bukan sekedar estetika. Warna adalah bahasa bawah sadar.
+
+1. **Merah**: Energi, Gairah, Urgensi (Contoh: Coca Cola, Netflix)
+2. **Biru**: Kepercayaan, Ketenangan, Profesionalisme (Contoh: Bank, Facebook, LinkedIn)
+3. **Kuning**: Optimisme, Kebahagiaan, Perhatian (Contoh: McDonald's, IKEA)
+
+Pilihlah warna yang sesuai dengan *personality* brand Anda, bukan sekedar warna favorit owner.`, 
+        cover_image: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=800&q=80', 
+        created_at: '2024-01-10', 
+        category: 'Branding',
+        slug: 'psikologi-warna-branding',
+        tags: ['Design', 'Branding', 'Psychology']
+    },
+    { 
+        id: 'b1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d4', 
+        title: 'Copywriting yang Menjual', 
+        excerpt: 'Tips menulis headline dan CTA (Call to Action) yang terbukti meningkatkan konversi penjualan.', 
+        content: `Copywriting bukan tentang menulis indah, tapi tentang **menjual**.
+
+Gunakan formula AIDA:
+- **Attention**: Tarik perhatian dengan Headline yang "nendang".
+- **Interest**: Buat mereka tertarik dengan fakta atau empati.
+- **Desire**: Tunjukkan manfaat (benefit), bukan hanya fitur.
+- **Action**: Beritahu apa yang harus mereka lakukan selanjutnya (Klik tombol ini!).`, 
+        cover_image: 'https://images.unsplash.com/photo-1519337265831-281ec6cc8514?auto=format&fit=crop&w=800&q=80', 
+        created_at: '2024-02-05', 
+        category: 'Copywriting',
+        slug: 'tips-copywriting-menjual',
+        tags: ['Copywriting', 'Sales', 'Marketing']
+    }
   ],
   messages: [
     { id: 'm1', name: 'Client Example', email: 'client@example.com', message: 'Halo, saya ingin menanyakan tentang jasa konsultasi SEO.', created_at: new Date().toISOString() }
@@ -257,7 +330,7 @@ export const db = {
 
   async getPosts(): Promise<BlogPost[]> {
     if (isSupabaseConfigured && supabase) {
-        const { data } = await supabase.from('posts').select('*');
+        const { data } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
         if (data && data.length > 0) return data as any[];
     }
     return MOCK_DATA.posts;

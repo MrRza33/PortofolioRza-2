@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -94,3 +95,47 @@ export const Label = ({ className, children, ...props }: React.LabelHTMLAttribut
     {children}
   </label>
 );
+
+// Markdown Renderer Component (Simple)
+export const MarkdownRenderer = ({ content }: { content: string }) => {
+    if (!content) return null;
+    
+    // Split by lines to process simple formatting
+    const lines = content.split('\n');
+    
+    return (
+        <div className="space-y-4">
+            {lines.map((line, index) => {
+                // Headings
+                if (line.startsWith('### ')) return <h3 key={index} className="text-xl font-bold text-white mt-6 mb-2">{line.replace('### ', '')}</h3>;
+                if (line.startsWith('## ')) return <h2 key={index} className="text-2xl font-bold text-white mt-8 mb-4 border-b border-neutral-800 pb-2">{line.replace('## ', '')}</h2>;
+                if (line.startsWith('# ')) return <h1 key={index} className="text-3xl font-bold text-white mt-10 mb-6">{line.replace('# ', '')}</h1>;
+                
+                // Blockquote
+                if (line.startsWith('> ')) return <blockquote key={index} className="border-l-4 border-blue-500 pl-4 italic text-neutral-400 my-4 bg-blue-500/5 py-2 rounded-r">{line.replace('> ', '')}</blockquote>;
+
+                // Lists
+                if (line.startsWith('- ')) return <li key={index} className="ml-4 list-disc text-neutral-300 pl-2 mb-1">{parseInline(line.replace('- ', ''))}</li>;
+                
+                // Empty line
+                if (line.trim() === '') return <div key={index} className="h-2"></div>;
+
+                // Standard paragraph
+                return <p key={index} className="text-neutral-300 leading-relaxed mb-4">{parseInline(line)}</p>;
+            })}
+        </div>
+    );
+};
+
+// Helper for inline styles like **bold** or *italic*
+const parseInline = (text: string) => {
+    // This is a simplified parser. For full markdown, use a library like react-markdown.
+    // Replaces **text** with bold
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, i) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+            return <strong key={i} className="font-bold text-white">{part.slice(2, -2)}</strong>;
+        }
+        return part;
+    });
+};

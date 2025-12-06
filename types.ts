@@ -53,6 +53,11 @@ export interface BlogPost {
   cover_image: string;
   created_at: string;
   category: string;
+  // SEO Fields
+  slug?: string;
+  meta_title?: string;
+  meta_description?: string;
+  tags?: string[]; // Array of strings for SEO tags
 }
 
 export interface Comment {

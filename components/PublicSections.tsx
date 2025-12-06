@@ -2,9 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useParams } from 'react-router-dom';
-import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, GraduationCap, ArrowRight, Code, Database, Layout, PenTool, Send, CheckCircle, MessageSquare, User, Box, X, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, GraduationCap, ArrowRight, Code, Database, Layout, PenTool, Send, CheckCircle, MessageSquare, User, Box, X, ChevronLeft, ChevronRight, Loader2, Tag } from 'lucide-react';
 import { Profile, Experience, Skill, Project, BlogPost, Comment } from '../types';
-import { Button, Card, Input, Textarea, Label } from './ui';
+import { Button, Card, Input, Textarea, Label, MarkdownRenderer } from './ui';
 import { db } from '../services/database';
 
 const fadeInUp = {
@@ -682,6 +682,9 @@ export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], 
 // --- BLOG LIST PAGE ---
 export const BlogPage = ({ posts }: { posts: BlogPost[] }) => {
     useEffect(() => { window.scrollTo(0, 0); }, []);
+    
+    const featuredPost = posts[0];
+    const otherPosts = posts.slice(1);
 
     return (
         <div className="pt-24 min-h-screen bg-black">
@@ -695,12 +698,43 @@ export const BlogPage = ({ posts }: { posts: BlogPost[] }) => {
                         Blog & <span className="text-blue-500">Artikel</span>
                     </motion.h1>
                     <p className="text-neutral-400 max-w-2xl mx-auto">
-                        Pemikiran, tutorial, dan wawasan seputar teknologi web development, software engineering, dan karir di dunia tech.
+                        Pemikiran, tutorial, dan wawasan seputar dunia Digital Marketing, Branding, dan WordPress.
                     </p>
                 </div>
 
+                {/* FEATURED POST */}
+                {featuredPost && (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mb-20"
+                    >
+                         <Link to={`/blog/${featuredPost.id}`} className="group block relative rounded-3xl overflow-hidden border border-neutral-800 aspect-[2/1] md:aspect-[2.5/1]">
+                             <img src={featuredPost.cover_image} alt={featuredPost.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                             <div className="absolute bottom-0 left-0 p-8 md:p-12 max-w-3xl">
+                                  <span className="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-blue-900 uppercase bg-blue-400 rounded-full">
+                                    Featured Article
+                                  </span>
+                                  <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 leading-tight group-hover:text-blue-400 transition-colors">
+                                      {featuredPost.title}
+                                  </h2>
+                                  <p className="text-lg text-neutral-300 mb-6 line-clamp-2 md:line-clamp-3">
+                                      {featuredPost.excerpt}
+                                  </p>
+                                  <div className="flex items-center gap-4 text-sm font-medium text-white">
+                                      <span>Baca Selengkapnya</span>
+                                      <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                                          <ArrowRight className="w-4 h-4" />
+                                      </div>
+                                  </div>
+                             </div>
+                         </Link>
+                    </motion.div>
+                )}
+
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
-                    {posts.map((post, idx) => (
+                    {otherPosts.map((post, idx) => (
                         <motion.div
                             key={post.id}
                             initial={{ opacity: 0, y: 20 }}
@@ -711,7 +745,7 @@ export const BlogPage = ({ posts }: { posts: BlogPost[] }) => {
                                 <div className="h-48 relative overflow-hidden shrink-0">
                                     <img src={post.cover_image} alt={post.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                     <div className="absolute top-4 left-4">
-                                        <span className="px-3 py-1 text-xs rounded-full bg-blue-600 text-white font-medium shadow-lg">
+                                        <span className="px-3 py-1 text-xs rounded-full bg-black/50 backdrop-blur text-white font-medium border border-white/10">
                                             {post.category}
                                         </span>
                                     </div>
@@ -723,6 +757,16 @@ export const BlogPage = ({ posts }: { posts: BlogPost[] }) => {
                                     </div>
                                     <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors line-clamp-2">{post.title}</h3>
                                     <p className="text-neutral-400 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
+                                    
+                                    {/* Tags Preview */}
+                                    {post.tags && post.tags.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 mb-4">
+                                            {post.tags.slice(0, 2).map(tag => (
+                                                <span key={tag} className="text-[10px] text-neutral-500 px-2 py-0.5 border border-neutral-800 rounded">#{tag}</span>
+                                            ))}
+                                        </div>
+                                    )}
+
                                     <div className="mt-auto pt-4 border-t border-neutral-800">
                                         <Link to={`/blog/${post.id}`} className="inline-flex items-center text-blue-500 text-sm font-medium hover:text-blue-400 group/link">
                                             Baca Selengkapnya <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover/link:translate-x-1" />
@@ -755,6 +799,16 @@ export const BlogDetail = ({ posts }: { posts: BlogPost[] }) => {
             db.getComments(id).then(setComments);
         }
     }, [id]);
+
+    // SEO Side Effect
+    useEffect(() => {
+        if (post) {
+            document.title = post.meta_title || post.title;
+            // Note: In a real app with Helmet, we would set meta description here too
+        } else {
+            document.title = "Blog - Reza.Dev";
+        }
+    }, [post]);
 
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -814,12 +868,26 @@ export const BlogDetail = ({ posts }: { posts: BlogPost[] }) => {
                     <img src={post.cover_image} alt={post.title} className="w-full h-auto max-h-[500px] object-cover" />
                 </div>
 
-                <div className="prose prose-invert prose-lg max-w-none text-neutral-300 leading-loose mb-16">
-                    {/* Render content with line breaks */}
-                    {post.content.split('\n').map((paragraph, idx) => (
-                        <p key={idx} className="mb-6">{paragraph}</p>
-                    ))}
+                <div className="prose prose-invert prose-lg max-w-none text-neutral-300 leading-loose mb-12">
+                     {/* Markdown Renderer handling formatting */}
+                     <MarkdownRenderer content={post.content} />
                 </div>
+
+                {/* Tags Footer */}
+                {post.tags && post.tags.length > 0 && (
+                    <div className="mb-16 pt-8 border-t border-neutral-800">
+                        <div className="flex items-center gap-2 mb-4 text-neutral-400 text-sm font-bold uppercase tracking-wider">
+                            <Tag className="w-4 h-4" /> Related Tags
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {post.tags.map(tag => (
+                                <span key={tag} className="px-3 py-1 bg-neutral-900 border border-neutral-700 rounded-md text-neutral-300 hover:text-white hover:border-blue-500 transition-colors cursor-pointer text-sm">
+                                    #{tag}
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* --- COMMENT SECTION --- */}
                 <div className="border-t border-neutral-800 pt-16">
