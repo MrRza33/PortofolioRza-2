@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, useLocation, Link, useNavigate } from 'react-router-dom';
 import { db } from './services/database';
@@ -383,7 +384,7 @@ export default function App() {
                     } />
 
                     <Route path="/contact" element={
-                        <ContactPage />
+                        <ContactPage profile={data.profile} />
                     } />
 
                     {/* Secret Admin Routes */}

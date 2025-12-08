@@ -955,7 +955,7 @@ export const BlogDetail = ({ posts }: { posts: BlogPost[] }) => {
 };
 
 // --- CONTACT PAGE ---
-export const ContactPage = () => {
+export const ContactPage = ({ profile }: { profile: Profile }) => {
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({ name: '', email: '', message: '' });
@@ -1000,25 +1000,25 @@ export const ContactPage = () => {
                             <Card className="p-8 bg-neutral-900 border-neutral-800 h-full">
                                 <h3 className="text-2xl font-bold text-white mb-6">Informasi Kontak</h3>
                                 <div className="space-y-6">
-                                    <a href="mailto:email@example.com" className="flex items-center gap-4 text-neutral-300 hover:text-blue-400 transition-colors p-4 rounded-lg hover:bg-neutral-800">
+                                    <a href={`mailto:${profile.email}`} className="flex items-center gap-4 text-neutral-300 hover:text-blue-400 transition-colors p-4 rounded-lg hover:bg-neutral-800">
                                         <div className="p-3 bg-blue-500/10 rounded-full text-blue-500"><Mail className="w-6 h-6" /></div>
                                         <div>
                                             <div className="text-xs text-neutral-500 uppercase font-bold tracking-wider mb-1">Email</div>
-                                            <div className="font-medium">alex@example.com</div>
+                                            <div className="font-medium truncate max-w-[200px]">{profile.email}</div>
                                         </div>
                                     </a>
-                                    <a href="#" className="flex items-center gap-4 text-neutral-300 hover:text-blue-400 transition-colors p-4 rounded-lg hover:bg-neutral-800">
+                                    <a href={profile.linkedin} target="_blank" rel="noreferrer" className="flex items-center gap-4 text-neutral-300 hover:text-blue-400 transition-colors p-4 rounded-lg hover:bg-neutral-800">
                                         <div className="p-3 bg-blue-500/10 rounded-full text-blue-500"><Linkedin className="w-6 h-6" /></div>
                                         <div>
                                             <div className="text-xs text-neutral-500 uppercase font-bold tracking-wider mb-1">LinkedIn</div>
-                                            <div className="font-medium">linkedin.com/in/alex</div>
+                                            <div className="font-medium">Connect on LinkedIn</div>
                                         </div>
                                     </a>
-                                    <a href="#" className="flex items-center gap-4 text-neutral-300 hover:text-blue-400 transition-colors p-4 rounded-lg hover:bg-neutral-800">
+                                    <a href={profile.github} target="_blank" rel="noreferrer" className="flex items-center gap-4 text-neutral-300 hover:text-blue-400 transition-colors p-4 rounded-lg hover:bg-neutral-800">
                                         <div className="p-3 bg-blue-500/10 rounded-full text-blue-500"><Github className="w-6 h-6" /></div>
                                         <div>
                                             <div className="text-xs text-neutral-500 uppercase font-bold tracking-wider mb-1">GitHub</div>
-                                            <div className="font-medium">github.com/alex</div>
+                                            <div className="font-medium">Follow on GitHub</div>
                                         </div>
                                     </a>
                                 </div>
