@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, Briefcase, Code, Folder, FileText, User, Upload, Image as ImageIcon, Mail, Users, Calendar, Bold, Italic, List, Heading, Link as LinkIcon, Eye, Settings } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, Briefcase, Code, Folder, FileText, User, Upload, Image as ImageIcon, Mail, Users, Calendar, Bold, Italic, List, Heading, Link as LinkIcon, Eye, Settings, Check } from 'lucide-react';
 import { Profile, Experience, Skill, Project, BlogPost, ContactMessage, Subscriber } from '../types';
 import { Button, Input, Textarea, Card, Label, MarkdownRenderer } from './ui';
 import { db } from '../services/database';
@@ -42,6 +42,19 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
   // Blog Editor Specific States
   const [blogTab, setBlogTab] = useState<'content' | 'seo'>('content');
   const [showPreview, setShowPreview] = useState(false);
+  
+  // Link Modal State
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkUrl, setLinkUrl] = useState('');
+  const [linkSelection, setLinkSelection] = useState<{start: number, end: number, text: string} | null>(null);
+  const linkInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus input when link modal opens
+  useEffect(() => {
+    if (showLinkModal && linkInputRef.current) {
+        setTimeout(() => linkInputRef.current?.focus(), 100);
+    }
+  }, [showLinkModal]);
 
   // Handlers for switching forms
   const startEdit = (item: any) => {
@@ -152,22 +165,46 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       const text = textarea.value;
+      const selection = text.substring(start, end);
+
+      // Handle Link Logic specifically
+      if (syntax === 'LINK') {
+          setLinkSelection({ start, end, text: selection });
+          setLinkUrl('');
+          setShowLinkModal(true);
+          return;
+      }
+      
       const before = text.substring(0, start);
       const after = text.substring(end, text.length);
-      const selection = text.substring(start, end);
       
-      // Handle simple wrapping or line insertion
       let newText = '';
       if (syntax === 'B') newText = `**${selection || placeholder}**`;
       else if (syntax === 'I') newText = `*${selection || placeholder}*`;
       else if (syntax === 'H2') newText = `\n## ${selection || placeholder}\n`;
       else if (syntax === 'UL') newText = `\n- ${selection || placeholder}\n`;
-      else if (syntax === 'LINK') newText = `[${selection || 'Link Text'}](url)`;
 
       const newValue = before + newText + after;
       setFormData({...formData, content: newValue});
-      
-      // Refocus logic omitted for brevity
+  };
+
+  const handleInsertLink = () => {
+    if (!linkSelection) return;
+    
+    const textarea = document.getElementById('blog-content-area') as HTMLTextAreaElement;
+    const text = formData.content;
+    const before = text.substring(0, linkSelection.start);
+    const after = text.substring(linkSelection.end, text.length);
+    
+    // Format: [Text](URL)
+    const linkText = linkSelection.text || 'Link Text';
+    const finalUrl = linkUrl || '#';
+    const newText = `[${linkText}](${finalUrl})`;
+    
+    setFormData({...formData, content: before + newText + after});
+    setShowLinkModal(false);
+    setLinkUrl('');
+    setLinkSelection(null);
   };
 
   // --- RENDER CONTENT ---
@@ -177,7 +214,39 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
       // --- CUSTOM BLOG EDITOR ---
       if (activeTab === 'blog') {
           return (
-              <div className="max-w-5xl mx-auto h-full flex flex-col">
+              <div className="max-w-5xl mx-auto h-full flex flex-col relative">
+                  {/* Link Modal Popup */}
+                  {showLinkModal && (
+                      <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                          <div className="bg-neutral-900 border border-neutral-700 p-6 rounded-xl shadow-2xl w-full max-w-md transform transition-all scale-100">
+                              <h4 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                  <LinkIcon className="w-5 h-5 text-blue-500" /> Masukkan Link URL
+                              </h4>
+                              <div className="space-y-4">
+                                  <div>
+                                      <Label>URL Tujuan</Label>
+                                      <Input 
+                                          ref={linkInputRef}
+                                          placeholder="https://example.com" 
+                                          value={linkUrl}
+                                          onChange={(e) => setLinkUrl(e.target.value)}
+                                          onKeyDown={(e) => {
+                                              if (e.key === 'Enter') handleInsertLink();
+                                          }}
+                                          className="bg-black/50"
+                                      />
+                                  </div>
+                                  <div className="flex justify-end gap-2">
+                                      <Button variant="secondary" size="sm" onClick={() => setShowLinkModal(false)}>Batal</Button>
+                                      <Button size="sm" onClick={handleInsertLink}>
+                                          <Check className="w-4 h-4 mr-2" /> Masukkan Link
+                                      </Button>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                  )}
+
                   {/* Editor Header */}
                   <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center gap-4">
@@ -250,7 +319,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                                               <button onClick={() => insertMarkdown('I')} className="p-1.5 hover:bg-neutral-800 rounded text-neutral-400 hover:text-white" title="Italic"><Italic className="w-4 h-4" /></button>
                                               <button onClick={() => insertMarkdown('H2')} className="p-1.5 hover:bg-neutral-800 rounded text-neutral-400 hover:text-white" title="Heading"><Heading className="w-4 h-4" /></button>
                                               <button onClick={() => insertMarkdown('UL')} className="p-1.5 hover:bg-neutral-800 rounded text-neutral-400 hover:text-white" title="List"><List className="w-4 h-4" /></button>
-                                              <button onClick={() => insertMarkdown('LINK')} className="p-1.5 hover:bg-neutral-800 rounded text-neutral-400 hover:text-white" title="Link"><LinkIcon className="w-4 h-4" /></button>
+                                              <button onClick={() => insertMarkdown('LINK')} className="p-1.5 hover:bg-neutral-800 rounded text-neutral-400 hover:text-blue-400" title="Insert Link"><LinkIcon className="w-4 h-4" /></button>
                                           </div>
                                       </div>
                                       <Textarea 

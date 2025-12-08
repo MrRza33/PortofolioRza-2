@@ -96,11 +96,67 @@ export const Label = ({ className, children, ...props }: React.LabelHTMLAttribut
   </label>
 );
 
-// Markdown Renderer Component (Simple)
+// Helper for inline styles (Link, Bold, Italic)
+const parseInline = (text: string) => {
+    let results: (string | React.ReactNode)[] = [text];
+
+    // 1. Links: [text](url)
+    // Regex matches [label](url)
+    results = results.flatMap((part, index) => {
+        if (typeof part !== 'string') return part;
+        
+        const parts = part.split(/(\[[^\]]+\]\([^)]+\))/g);
+        
+        return parts.map((subPart, subIndex) => {
+            const match = subPart.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+            if (match) {
+                return (
+                    <a 
+                        key={`link-${index}-${subIndex}`} 
+                        href={match[2]} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        className="text-blue-400 hover:text-blue-300 underline decoration-blue-500/30 transition-colors"
+                    >
+                        {match[1]}
+                    </a>
+                );
+            }
+            return subPart;
+        });
+    });
+
+    // 2. Bold: **text**
+    results = results.flatMap((part, index) => {
+        if (typeof part !== 'string') return part;
+        const parts = part.split(/(\*\*.*?\*\*)/g);
+        return parts.map((subPart, subIndex) => {
+            if (subPart.startsWith('**') && subPart.endsWith('**')) {
+                return <strong key={`bold-${index}-${subIndex}`} className="font-bold text-white">{subPart.slice(2, -2)}</strong>;
+            }
+            return subPart;
+        });
+    });
+
+    // 3. Italic: *text*
+    results = results.flatMap((part, index) => {
+        if (typeof part !== 'string') return part;
+        const parts = part.split(/(\*[^*]+\*)/g);
+        return parts.map((subPart, subIndex) => {
+            if (subPart.startsWith('*') && subPart.endsWith('*') && subPart.length > 2) {
+                return <em key={`italic-${index}-${subIndex}`} className="italic text-neutral-300">{subPart.slice(1, -1)}</em>;
+            }
+            return subPart;
+        });
+    });
+
+    return results;
+};
+
+// Markdown Renderer Component
 export const MarkdownRenderer = ({ content }: { content: string }) => {
     if (!content) return null;
     
-    // Split by lines to process simple formatting
     const lines = content.split('\n');
     
     return (
@@ -112,7 +168,7 @@ export const MarkdownRenderer = ({ content }: { content: string }) => {
                 if (line.startsWith('# ')) return <h1 key={index} className="text-3xl font-bold text-white mt-10 mb-6">{line.replace('# ', '')}</h1>;
                 
                 // Blockquote
-                if (line.startsWith('> ')) return <blockquote key={index} className="border-l-4 border-blue-500 pl-4 italic text-neutral-400 my-4 bg-blue-500/5 py-2 rounded-r">{line.replace('> ', '')}</blockquote>;
+                if (line.startsWith('> ')) return <blockquote key={index} className="border-l-4 border-blue-500 pl-4 italic text-neutral-400 my-4 bg-blue-500/5 py-2 rounded-r">{parseInline(line.replace('> ', ''))}</blockquote>;
 
                 // Lists
                 if (line.startsWith('- ')) return <li key={index} className="ml-4 list-disc text-neutral-300 pl-2 mb-1">{parseInline(line.replace('- ', ''))}</li>;
@@ -125,17 +181,4 @@ export const MarkdownRenderer = ({ content }: { content: string }) => {
             })}
         </div>
     );
-};
-
-// Helper for inline styles like **bold** or *italic*
-const parseInline = (text: string) => {
-    // This is a simplified parser. For full markdown, use a library like react-markdown.
-    // Replaces **text** with bold
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    return parts.map((part, i) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={i} className="font-bold text-white">{part.slice(2, -2)}</strong>;
-        }
-        return part;
-    });
 };
