@@ -1,6 +1,6 @@
 
 import React, { useEffect, useState } from 'react';
-import { HashRouter as Router, Routes, Route, Navigate, useLocation, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Link, useNavigate } from 'react-router-dom';
 import { db } from './services/database';
 import { Hero, About, ExperienceSection, Skills, ProjectsTeaser, BlogTeaser, ProjectsPage, BlogPage, BlogDetail, ContactPage } from './components/PublicSections';
 import { AdminDashboard } from './components/AdminDashboard';
@@ -8,6 +8,16 @@ import { Profile, Experience, Skill, Project, BlogPost, ContactMessage, Subscrib
 import { Button, Input, Card } from './components/ui';
 import { Loader2, Download, Home, Menu, X, ChevronRight } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+
+// --- SCROLL TO TOP UTILITY ---
+// Memastikan halaman kembali ke posisi paling atas saat pindah rute
+const ScrollToTop = () => {
+    const { pathname } = useLocation();
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [pathname]);
+    return null;
+};
 
 // --- NAV BAR ---
 const Navbar = ({ profile }: { profile?: Profile | null }) => {
@@ -56,6 +66,17 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
         }
     };
 
+    // Handler khusus untuk Logo dan Home Link agar aman di Preview Environment
+    const handleSafeHomeNavigate = (e: React.MouseEvent) => {
+        e.preventDefault();
+        if (isHomePage) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            navigate('/');
+        }
+        setMobileMenuOpen(false);
+    };
+
     if (location.pathname.includes('admin')) return null;
 
     const navLinks = [
@@ -77,8 +98,8 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
                 }`}
             >
                 <div className="container mx-auto px-6 flex justify-between items-center">
-                    {/* Logo */}
-                    <Link to="/" className="relative z-50 group">
+                    {/* Logo - Menggunakan Safe Handler untuk mencegah error preview */}
+                    <a href="/" onClick={handleSafeHomeNavigate} className="relative z-50 group cursor-pointer">
                         {profile?.logo_url ? (
                             <img src={profile.logo_url} alt="Logo" className="h-10 w-auto object-contain transition-transform group-hover:scale-105" />
                         ) : (
@@ -87,7 +108,7 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">.Dev</span>
                             </div>
                         )}
-                    </Link>
+                    </a>
                     
                     {/* Desktop Navigation */}
                     {!isLoginPage && (
@@ -121,13 +142,12 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
                     
                     {/* Action Buttons (Desktop) */}
                     <div className="hidden md:flex items-center gap-4">
-                        {/* Tombol Admin DIHAPUS agar tersembunyi */}
                         {isLoginPage && (
-                            <Link to="/">
+                            <a href="/" onClick={handleSafeHomeNavigate} className="cursor-pointer">
                                 <Button variant="ghost" size="sm" className="gap-2">
                                     <Home className="w-4 h-4" /> Home
                                 </Button>
-                            </Link>
+                            </a>
                         )}
                     </div>
 
@@ -186,8 +206,6 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
                                 </motion.div>
                             ))}
                         </nav>
-                        
-                        {/* Link Admin di Mobile Menu juga DIHAPUS */}
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -198,16 +216,28 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
 // --- FOOTER ---
 const Footer = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+
+    // Safe navigation for footer links too
+    const handleSafeNavigate = (e: React.MouseEvent, path: string) => {
+        e.preventDefault();
+        if (location.pathname === path) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+            navigate(path);
+        }
+    };
+
     if (location.pathname.includes('admin')) return null;
     return (
         <footer className="py-12 border-t border-neutral-900 bg-black text-center relative overflow-hidden">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[1px] bg-gradient-to-r from-transparent via-blue-500/50 to-transparent opacity-50" />
             <div className="container mx-auto px-6 relative z-10">
                  <div className="flex flex-wrap justify-center gap-x-8 gap-y-4 mb-8 text-sm font-medium">
-                     <Link to="/" className="text-neutral-400 hover:text-white transition-colors">Home</Link>
-                     <Link to="/projects" className="text-neutral-400 hover:text-white transition-colors">Projects</Link>
-                     <Link to="/blog" className="text-neutral-400 hover:text-white transition-colors">Blog</Link>
-                     <Link to="/contact" className="text-neutral-400 hover:text-white transition-colors">Contact</Link>
+                     <a href="/" onClick={(e) => handleSafeNavigate(e, '/')} className="text-neutral-400 hover:text-white transition-colors cursor-pointer">Home</a>
+                     <a href="/projects" onClick={(e) => handleSafeNavigate(e, '/projects')} className="text-neutral-400 hover:text-white transition-colors cursor-pointer">Projects</a>
+                     <a href="/blog" onClick={(e) => handleSafeNavigate(e, '/blog')} className="text-neutral-400 hover:text-white transition-colors cursor-pointer">Blog</a>
+                     <a href="/contact" onClick={(e) => handleSafeNavigate(e, '/contact')} className="text-neutral-400 hover:text-white transition-colors cursor-pointer">Contact</a>
                  </div>
                  <div className="text-neutral-600 text-sm flex flex-col gap-2">
                     <p>&copy; {new Date().getFullYear()} Reza. All rights reserved.</p>
@@ -356,6 +386,7 @@ export default function App() {
     return (
         <Router>
             <div className="bg-black min-h-screen text-neutral-200 font-sans selection:bg-blue-500/30 selection:text-blue-200">
+                <ScrollToTop />
                 <Navbar profile={data.profile} />
                 <Routes>
                     {/* Home Route: Hero, About, Experience, Skills */}
@@ -379,7 +410,8 @@ export default function App() {
                         <BlogPage posts={data.posts} />
                     } />
 
-                    <Route path="/blog/:id" element={
+                    {/* Blog Detail Route - Supports Slug or ID */}
+                    <Route path="/blog/:slug" element={
                         <BlogDetail posts={data.posts} />
                     } />
 

@@ -538,7 +538,7 @@ export const BlogTeaser = ({ posts }: { posts: BlogPost[] }) => {
                          <p className="text-neutral-400 text-sm mb-4 line-clamp-3">{post.excerpt}</p>
                          <div className="mt-auto pt-4 border-t border-neutral-800 flex justify-between items-center">
                             <span className="text-xs text-neutral-500">{new Date(post.created_at).toLocaleDateString('id-ID', {year: 'numeric', month: 'short', day: 'numeric'})}</span>
-                            <Link to={`/blog/${post.id}`} className="text-sm font-medium text-white hover:text-blue-400 flex items-center">
+                            <Link to={`/blog/${post.slug || post.id}`} className="text-sm font-medium text-white hover:text-blue-400 flex items-center">
                                Baca <ArrowRight className="w-3 h-3 ml-1" />
                             </Link>
                          </div>
@@ -569,10 +569,6 @@ export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], 
   const filteredProjects = filter === 'all' 
     ? projects 
     : projects.filter(p => p.category === filter);
-
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
 
   return (
     <div className="pt-24 min-h-screen bg-black">
@@ -681,8 +677,6 @@ export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], 
 
 // --- BLOG LIST PAGE ---
 export const BlogPage = ({ posts }: { posts: BlogPost[] }) => {
-    useEffect(() => { window.scrollTo(0, 0); }, []);
-    
     const featuredPost = posts[0];
     const otherPosts = posts.slice(1);
 
@@ -709,7 +703,7 @@ export const BlogPage = ({ posts }: { posts: BlogPost[] }) => {
                         animate={{ opacity: 1, scale: 1 }}
                         className="mb-20"
                     >
-                         <Link to={`/blog/${featuredPost.id}`} className="group block relative rounded-3xl overflow-hidden border border-neutral-800 aspect-[2/1] md:aspect-[2.5/1]">
+                         <Link to={`/blog/${featuredPost.slug || featuredPost.id}`} className="group block relative rounded-3xl overflow-hidden border border-neutral-800 aspect-[2/1] md:aspect-[2.5/1]">
                              <img src={featuredPost.cover_image} alt={featuredPost.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
                              <div className="absolute bottom-0 left-0 p-8 md:p-12 max-w-3xl">
@@ -768,7 +762,7 @@ export const BlogPage = ({ posts }: { posts: BlogPost[] }) => {
                                     )}
 
                                     <div className="mt-auto pt-4 border-t border-neutral-800">
-                                        <Link to={`/blog/${post.id}`} className="inline-flex items-center text-blue-500 text-sm font-medium hover:text-blue-400 group/link">
+                                        <Link to={`/blog/${post.slug || post.id}`} className="inline-flex items-center text-blue-500 text-sm font-medium hover:text-blue-400 group/link">
                                             Baca Selengkapnya <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover/link:translate-x-1" />
                                         </Link>
                                     </div>
@@ -785,26 +779,46 @@ export const BlogPage = ({ posts }: { posts: BlogPost[] }) => {
 
 // --- BLOG DETAIL PAGE ---
 export const BlogDetail = ({ posts }: { posts: BlogPost[] }) => {
-    const { id } = useParams();
-    const post = posts.find(p => p.id === id);
+    // We expect slug now, but fallback to ID logic if needed
+    const { slug } = useParams();
+    
+    // Cari post berdasarkan SLUG atau ID
+    const post = posts.find(p => p.slug === slug || p.id === slug);
+    
     const [comments, setComments] = useState<Comment[]>([]);
     const [commentName, setCommentName] = useState('');
     const [commentContent, setCommentContent] = useState('');
     const [submittingComment, setSubmittingComment] = useState(false);
 
-    useEffect(() => { window.scrollTo(0, 0); }, [id]);
-
     useEffect(() => {
-        if (id) {
-            db.getComments(id).then(setComments);
+        if (post) {
+            db.getComments(post.id).then(setComments);
         }
-    }, [id]);
+    }, [post]);
 
-    // SEO Side Effect
+    // SEO Side Effect - Manual Meta Injection for client-side navigation
     useEffect(() => {
         if (post) {
             document.title = post.meta_title || post.title;
-            // Note: In a real app with Helmet, we would set meta description here too
+            
+            // Function to set meta tag
+            const setMeta = (name: string, content: string, attr: string = 'name') => {
+                let element = document.querySelector(`meta[${attr}="${name}"]`);
+                if (!element) {
+                    element = document.createElement('meta');
+                    element.setAttribute(attr, name);
+                    document.head.appendChild(element);
+                }
+                element.setAttribute('content', content);
+            };
+
+            const desc = post.meta_description || post.excerpt;
+            setMeta('description', desc);
+            setMeta('og:title', post.meta_title || post.title, 'property');
+            setMeta('og:description', desc, 'property');
+            setMeta('og:image', post.cover_image, 'property');
+            setMeta('og:type', 'article', 'property');
+            
         } else {
             document.title = "Blog - Reza.Dev";
         }
@@ -812,19 +826,19 @@ export const BlogDetail = ({ posts }: { posts: BlogPost[] }) => {
 
     const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!id || !commentContent.trim()) return;
+        if (!post || !commentContent.trim()) return;
 
         setSubmittingComment(true);
         try {
             const newComment = {
-                post_id: id,
+                post_id: post.id,
                 user_name: commentName.trim() || 'Anonymous',
                 content: commentContent
             };
             await db.saveComment(newComment);
             
             // Refresh comments
-            const updated = await db.getComments(id);
+            const updated = await db.getComments(post.id);
             setComments(updated);
             
             setCommentContent('');
@@ -959,8 +973,6 @@ export const ContactPage = ({ profile }: { profile: Profile }) => {
     const [submitted, setSubmitted] = useState(false);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({ name: '', email: '', message: '' });
-
-    useEffect(() => { window.scrollTo(0, 0); }, []);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
