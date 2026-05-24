@@ -434,12 +434,15 @@ export default function App() {
                                 onLogout={handleLogout} 
                             />
                         ) : (
-                            <Navigate to="/" />
+                            <Navigate to="/" replace />
                         )
                     } />
                     
                     {/* Tangani rute /login lama agar tidak bisa diakses */}
-                    <Route path="/login" element={<Navigate to="/" />} />
+                    <Route path="/login" element={<Navigate to="/" replace />} />
+
+                    {/* Fallback route to catch unknown paths (e.g., AI Studio preview URLs) and redirect to home */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
                 <Footer />
             </div>

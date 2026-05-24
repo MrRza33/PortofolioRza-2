@@ -207,24 +207,36 @@ export const Hero = ({ profile }: { profile: Profile }) => {
   return (
     <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden pt-16">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-900/20 via-black to-black pointer-events-none" />
+
+      {/* BACKGROUND IMAGE UNTUK MOBILE */}
+      <div className="md:hidden absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        {/* Overlay agar teks tetap bisa dibaca */}
+        <div className="absolute inset-0 bg-black/60 z-10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
+        <img 
+            src={profile.avatar_url} 
+            alt="" 
+            className="w-full h-full object-cover object-top opacity-40"
+        />
+      </div>
       
-      <div className="container mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-12">
+      <div className="container mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-12 pt-10 md:pt-0">
         <motion.div 
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
-          className="flex-1 text-center md:text-left"
+          className="flex-1 text-center md:text-left relative z-20"
         >
           <motion.div variants={fadeInUp} className="inline-block px-3 py-1 mb-4 text-xs font-semibold tracking-wider text-blue-400 uppercase bg-blue-500/10 rounded-full">
             Introduction by me
           </motion.div>
-          <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
+          <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight drop-shadow-lg md:drop-shadow-none">
             Halo, saya <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">
               {profile.name}
             </span>
           </motion.h1>
-          <motion.p variants={fadeInUp} className="text-xl text-neutral-400 mb-8 max-w-2xl mx-auto md:mx-0 leading-relaxed">
+          <motion.p variants={fadeInUp} className="text-xl text-neutral-200 md:text-neutral-400 mb-8 max-w-2xl mx-auto md:mx-0 leading-relaxed font-medium md:font-normal drop-shadow-md md:drop-shadow-none">
             {profile.tagline}
           </motion.p>
           <motion.div variants={fadeInUp} className="flex flex-wrap gap-4 justify-center md:justify-start">
@@ -235,44 +247,42 @@ export const Hero = ({ profile }: { profile: Profile }) => {
             </a>
             {/* LINK KE HALAMAN PROJECTS */}
             <Link to="/projects">
-              <Button variant="outline" size="lg" className="rounded-full border-blue-500/30 hover:bg-blue-500/10 text-blue-200">
+              <Button variant="outline" size="lg" className="rounded-full border-blue-500/30 hover:bg-blue-500/10 text-white md:text-blue-200 bg-white/10 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none">
                 Lihat Karya
               </Button>
             </Link>
           </motion.div>
 
-          <motion.div variants={fadeInUp} className="flex gap-6 mt-12 justify-center md:justify-start">
+          <motion.div variants={fadeInUp} className="flex gap-6 mt-12 justify-center md:justify-start drop-shadow-md md:drop-shadow-none">
             {[
               { icon: Github, href: profile.github },
               { icon: Linkedin, href: profile.linkedin },
               { icon: Mail, href: `mailto:${profile.email}` }
             ].map((social, idx) => (
-              <a key={idx} href={social.href} target="_blank" rel="noreferrer" className="text-neutral-500 hover:text-blue-400 transition-colors transform hover:scale-110">
+              <a key={idx} href={social.href} target="_blank" rel="noreferrer" className="text-neutral-200 md:text-neutral-500 hover:text-blue-400 transition-colors transform hover:scale-110">
                 <social.icon className="w-6 h-6" />
               </a>
             ))}
           </motion.div>
         </motion.div>
 
+        {/* CONTAINER GAMBAR UNTUK DESKTOP */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
-          className="flex-1 relative max-w-md md:max-w-lg"
+          className="hidden md:block flex-1 relative max-w-md md:max-w-lg z-20"
         >
           {/* Efek Glow di belakang */}
           <div className="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full pointer-events-none" />
           
-          {/* Container Gambar tanpa border */}
-          <div className="relative z-10 overflow-hidden">
+          {/* Container Gambar tanpa border dan clipping */}
+          <div className="relative z-10 flex justify-center">
             <img 
                 src={profile.avatar_url} 
                 alt={profile.name} 
-                className="w-full h-auto object-cover transform hover:scale-105 transition-transform duration-700 rounded-2xl" 
+                className="w-full h-auto object-contain transform hover:scale-105 transition-transform duration-700 drop-shadow-[0_20px_50px_rgba(59,130,246,0.2)] max-h-[85vh]" 
             />
-            
-            {/* Overlay Gradient untuk menyatukan dengan background */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent rounded-2xl pointer-events-none" />
           </div>
         </motion.div>
       </div>

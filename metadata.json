@@ -1,5 +1,6 @@
 {
   "name": "Portfolio Pro",
   "description": "Portofolio profesional lengkap dengan CMS admin, menampilkan pengalaman, skill, proyek, dan blog.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": []
 }
