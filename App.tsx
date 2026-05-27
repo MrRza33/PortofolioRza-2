@@ -4,9 +4,9 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Link, us
 import { db } from './services/database';
 import { Hero, About, ExperienceSection, Skills, ProjectsTeaser, BlogTeaser, ProjectsPage, BlogPage, BlogDetail, ContactPage } from './components/PublicSections';
 import { AdminDashboard } from './components/AdminDashboard';
-import { Profile, Experience, Skill, Project, BlogPost, ContactMessage, Subscriber } from './types';
+import { Profile, Experience, Skill, Project, BlogPost, ContactMessage, Subscriber, Music } from './types';
 import { Button, Input, Card } from './components/ui';
-import { Loader2, Download, Home, Menu, X, ChevronRight } from 'lucide-react';
+import { Loader2, Download, Home, Menu, X, ChevronRight, Music2, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 // --- SCROLL TO TOP UTILITY ---
@@ -247,6 +247,108 @@ const Footer = () => {
     );
 };
 
+// --- MUSIC PLAYER ---
+const MusicPlayer = ({ musics }: { musics: Music[] }) => {
+    const activeMusic = musics.filter(m => m.is_active);
+    const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [isMuted, setIsMuted] = useState(false);
+    const [showPlayer, setShowPlayer] = useState(false);
+    const audioRef = React.useRef<HTMLAudioElement | null>(null);
+
+    // Filter valid tracks
+    const validTracks = activeMusic.filter(m => m.audio_url);
+
+    // Initialize audio ref
+    useEffect(() => {
+        if (!audioRef.current) {
+            audioRef.current = new Audio();
+            // Try to autoplay muted to respect browser policies, then unmute if user interacts
+            audioRef.current.loop = true;
+        }
+    }, []);
+
+    // Change track when index changes
+    useEffect(() => {
+        if (validTracks.length > 0 && audioRef.current) {
+            audioRef.current.src = validTracks[currentTrackIndex].audio_url;
+            if (isPlaying) {
+                audioRef.current.play().catch(e => console.log('Autoplay restricted:', e));
+            }
+        }
+    }, [currentTrackIndex, validTracks]);
+
+    // Update audio properties
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.muted = isMuted;
+            if (isPlaying) {
+                audioRef.current.play().catch(e => {
+                    console.log('Autoplay restricted:', e);
+                    setIsPlaying(false);
+                });
+            } else {
+                audioRef.current.pause();
+            }
+        }
+    }, [isPlaying, isMuted]);
+
+    if (validTracks.length === 0) return null;
+
+    const currentTrack = validTracks[currentTrackIndex];
+
+    const togglePlay = () => setIsPlaying(!isPlaying);
+    const toggleMute = () => setIsMuted(!isMuted);
+
+    return (
+        <div className="fixed bottom-6 right-6 z-50 flex items-end justify-end flex-col gap-2">
+             <AnimatePresence>
+                 {showPlayer && (
+                     <motion.div 
+                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                        className="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 shadow-xl shadow-black/50 w-64 backdrop-blur-xl bg-opacity-90"
+                     >
+                         <h4 className="text-sm font-bold text-white mb-1 truncate">{currentTrack.title}</h4>
+                         <p className="text-xs text-neutral-400 mb-3 truncate">{currentTrack.artist || 'Unknown Artist'}</p>
+                         
+                         <div className="flex items-center justify-between">
+                            <button 
+                                onClick={togglePlay} 
+                                className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-500 flex items-center justify-center text-white transition-colors"
+                            >
+                                {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-1" />}
+                            </button>
+                            
+                            <div className="flex gap-2">
+                                {validTracks.length > 1 && (
+                                    <button onClick={() => setCurrentTrackIndex((prev) => (prev + 1) % validTracks.length)} className="p-2 text-neutral-400 hover:text-white transition-colors" title="Next Track">
+                                        <ChevronRight className="w-5 h-5" />
+                                    </button>
+                                )}
+                                <button onClick={toggleMute} className="p-2 text-neutral-400 hover:text-white transition-colors" title={isMuted ? "Unmute" : "Mute"}>
+                                    {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                                </button>
+                            </div>
+                         </div>
+                     </motion.div>
+                 )}
+             </AnimatePresence>
+
+             <button 
+                onClick={() => setShowPlayer(!showPlayer)}
+                className={`w-12 h-12 rounded-full shadow-lg shadow-black/30 flex items-center justify-center transition-all ${isPlaying ? 'bg-blue-600 hover:bg-blue-500 animate-pulse' : 'bg-neutral-800 border border-neutral-700 hover:bg-neutral-700'}`}
+             >
+                 <Music2 className={`w-5 h-5 ${isPlaying ? 'text-white' : 'text-neutral-400'}`} />
+                 {isPlaying && !showPlayer && (
+                     <span className="absolute -top-1 -right-1 w-3 h-3 bg-blue-400 rounded-full" />
+                 )}
+             </button>
+        </div>
+    );
+};
+
 // --- LOGIN PAGE ---
 const Login = ({ onLogin }: { onLogin: () => void }) => {
     const [email, setEmail] = useState('');
@@ -316,7 +418,7 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
     );
 };
 
-export default function App() {
+function AppContent() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<{
@@ -327,6 +429,7 @@ export default function App() {
         posts: BlogPost[];
         messages: ContactMessage[];
         subscribers: Subscriber[];
+        musics: Music[];
     }>({
         profile: null,
         experience: [],
@@ -334,7 +437,8 @@ export default function App() {
         projects: [],
         posts: [],
         messages: [],
-        subscribers: []
+        subscribers: [],
+        musics: []
     });
 
     const initApp = async () => {
@@ -346,7 +450,7 @@ export default function App() {
             }
 
             // 2. Fetch Data
-            const [profile, experience, skills, projects, posts, messages, subscribers] = await Promise.all([
+            const [profile, experience, skills, projects, posts, messages, subscribers, musics] = await Promise.all([
                 db.getProfile(),
                 db.getExperiences(),
                 db.getSkills(),
@@ -354,9 +458,10 @@ export default function App() {
                 db.getPosts(),
                 // Only fetch messages/subs if auth, but for simple architecture we might fetch or return empty
                 db.getMessages(),
-                db.getSubscribers()
+                db.getSubscribers(),
+                db.getMusics()
             ]);
-            setData({ profile, experience, skills, projects, posts, messages, subscribers });
+            setData({ profile, experience, skills, projects, posts, messages, subscribers, musics });
         } catch (error) {
             console.error("Failed to load data", error);
         } finally {
@@ -373,6 +478,9 @@ export default function App() {
         setIsAuthenticated(false);
     };
 
+    const location = useLocation();
+    const isAdminRoute = location.pathname.includes('/admin') || location.pathname === '/portalreza';
+
     if (loading) {
         return (
             <div className="min-h-screen bg-black flex items-center justify-center text-blue-500">
@@ -384,11 +492,13 @@ export default function App() {
     if (!data.profile) return null;
 
     return (
-        <Router>
-            <div className="bg-black min-h-screen text-neutral-200 font-sans selection:bg-blue-500/30 selection:text-blue-200">
-                <ScrollToTop />
-                <Navbar profile={data.profile} />
-                <Routes>
+        <div className="bg-black min-h-screen text-neutral-200 font-sans selection:bg-blue-500/30 selection:text-blue-200">
+            <ScrollToTop />
+            <Navbar profile={data.profile} />
+            {!isAdminRoute && data.musics && data.musics.length > 0 && (
+                <MusicPlayer musics={data.musics} />
+            )}
+            <Routes>
                     {/* Home Route: Hero, About, Experience, Skills */}
                     <Route path="/" element={
                         <main>
@@ -446,6 +556,13 @@ export default function App() {
                 </Routes>
                 <Footer />
             </div>
+    );
+}
+
+export default function App() {
+    return (
+        <Router>
+            <AppContent />
         </Router>
     );
 }

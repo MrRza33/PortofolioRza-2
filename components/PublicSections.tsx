@@ -529,7 +529,7 @@ export const BlogTeaser = ({ posts }: { posts: BlogPost[] }) => {
        <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Tulisan <span className="text-blue-500">Terbaru</span></h2>
-            <p className="text-neutral-400">Berbagi peinformasi, pengetahuan, dan pengalaman seputar teknologi.</p>
+            <p className="text-neutral-400">Berbagi informasi, pengetahuan, dan pengalaman seputar teknologi.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
@@ -702,7 +702,7 @@ export const BlogPage = ({ posts }: { posts: BlogPost[] }) => {
                         Blog & <span className="text-blue-500">Artikel</span>
                     </motion.h1>
                     <p className="text-neutral-400 max-w-2xl mx-auto">
-                        Pemikiran, tutorial, dan wawasan seputar dunia Digital Marketing, Branding, dan WordPress.
+                        Berbagi informasi, pengetahuan, dan pengalaman seputar teknologi
                     </p>
                 </div>
 

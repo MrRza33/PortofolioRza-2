@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import { Profile, Experience, Skill, Project, BlogPost, Comment, ContactMessage, Subscriber } from '../types';
+import { Profile, Experience, Skill, Project, BlogPost, Comment, ContactMessage, Subscriber, Music } from '../types';
 
 // Supabase Configuration from User Input
 const SUPABASE_URL = 'https://iqxushprpibrpuuzmooj.supabase.co';
@@ -208,6 +208,9 @@ Gunakan formula AIDA:
   ],
   subscribers: [
     { id: 'sub1', email: 'fan@example.com', created_at: new Date().toISOString() }
+  ],
+  musics: [
+    { id: 'mu1', title: 'Lofi Chill', artist: 'Unknown', audio_url: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3', is_active: true }
   ]
 };
 
@@ -409,6 +412,28 @@ export const db = {
   async deleteSubscriber(id: string): Promise<void> {
      if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
      const { error } = await supabase.from('subscribers').delete().eq('id', id);
+     if (error) throw new Error(error.message);
+  },
+
+  // MUSIC
+  async getMusics(): Promise<Music[]> {
+     if (isSupabaseConfigured && supabase) {
+        const { data, error } = await supabase.from('musics').select('*');
+        if (data) return data as Music[];
+        if (error) console.warn("Musics fetch error (Table might not exist yet):", error.message);
+     }
+     return MOCK_DATA.musics as Music[];
+  },
+
+  async saveMusic(item: Music): Promise<void> {
+     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+     const { error } = await supabase.from('musics').upsert(sanitizePayload(item));
+     if (error) throw new Error(error.message);
+  },
+
+  async deleteMusic(id: string): Promise<void> {
+     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
+     const { error } = await supabase.from('musics').delete().eq('id', id);
      if (error) throw new Error(error.message);
   },
 

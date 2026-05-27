@@ -82,6 +82,15 @@ export interface Subscriber {
   created_at: string;
 }
 
+export interface Music {
+  id: string;
+  title: string;
+  artist?: string;
+  audio_url: string;
+  is_active: boolean;
+  created_at?: string;
+}
+
 export interface UserSession {
   user: {
     email: string;

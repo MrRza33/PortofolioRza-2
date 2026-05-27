@@ -1,12 +1,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, Briefcase, Code, Folder, FileText, User, Upload, Image as ImageIcon, Mail, Users, Calendar, Bold, Italic, List, Heading, Link as LinkIcon, Eye, Settings, Check } from 'lucide-react';
-import { Profile, Experience, Skill, Project, BlogPost, ContactMessage, Subscriber } from '../types';
-import { Button, Input, Textarea, Card, Label, MarkdownRenderer } from './ui';
+import { Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, Briefcase, Code, Folder, FileText, User, Upload, Image as ImageIcon, Mail, Users, Calendar, Bold, Italic, List, Heading, Link as LinkIcon, Eye, Settings, Check, Music as MusicIcon, PlayCircle, PauseCircle } from 'lucide-react';
+import { Profile, Experience, Skill, Project, BlogPost, ContactMessage, Subscriber, Music } from '../types';
+import { Button, Input, Textarea, Card, Label, MarkdownRenderer, Switch } from './ui';
 import { db } from '../services/database';
 
-type Tab = 'profile' | 'experience' | 'skills' | 'projects' | 'blog' | 'messages' | 'subscribers';
+type Tab = 'profile' | 'experience' | 'skills' | 'projects' | 'blog' | 'messages' | 'subscribers' | 'music';
 
 interface AdminProps {
   data: {
@@ -17,6 +17,7 @@ interface AdminProps {
     posts: BlogPost[];
     messages: ContactMessage[];
     subscribers: Subscriber[];
+    musics: Music[];
   };
   refreshData: () => void;
   onLogout: () => void;
@@ -90,7 +91,8 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
       experience: { id: newId, role: '', company: '', period: '', description: '', type: 'work' },
       skills: { id: newId, name: '', category: 'Frontend', level: 50 },
       projects: { id: newId, title: '', description: '', image_url: '', gallery: [], tags: [], category: 'Web', demo_url: '', repo_url: '' },
-      blog: { id: newId, title: '', excerpt: '', content: '', cover_image: '', created_at: new Date().toISOString(), category: 'General', slug: '', meta_title: '', meta_description: '', tags: [] }
+      blog: { id: newId, title: '', excerpt: '', content: '', cover_image: '', created_at: new Date().toISOString(), category: 'General', slug: '', meta_title: '', meta_description: '', tags: [] },
+      music: { id: newId, title: '', artist: '', audio_url: '', is_active: true }
     };
     
     if (emptyModels[type]) {
@@ -111,6 +113,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
       else if (activeTab === 'skills') await db.saveSkill(formData);
       else if (activeTab === 'projects') await db.saveProject(formData);
       else if (activeTab === 'blog') await db.savePost(formData);
+      else if (activeTab === 'music') await db.saveMusic(formData);
       
       refreshData();
       setIsEditing(null);
@@ -130,6 +133,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
       else if (activeTab === 'blog') await db.deletePost(id);
       else if (activeTab === 'messages') await db.deleteMessage(id);
       else if (activeTab === 'subscribers') await db.deleteSubscriber(id);
+      else if (activeTab === 'music') await db.deleteMusic(id);
       refreshData();
     } catch (e: any) {
       console.error(e);
@@ -462,9 +466,19 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                     )
                 }
 
+                if (key === 'is_active') {
+                    return (
+                        <div key={key} className="flex items-center gap-2 mt-4">
+                             <input type="checkbox" id="is_active_check" checked={formData[key]} onChange={(e) => setFormData({...formData, [key]: e.target.checked})} className="w-4 h-4" />
+                             <Label htmlFor="is_active_check" className="cursor-pointer">Active (Set as main track if true)</Label>
+                        </div>
+                    )
+                }
+
                 // Image/File Upload Fields
                 if ((key.includes('_url') && key !== 'demo_url' && key !== 'repo_url') || key.includes('image') || key === 'cover_image') {
                     const isDoc = key.includes('cv') || key.includes('pdf') || key.includes('portfolio');
+                    const isAudio = key.includes('audio');
                     const label = key === 'image_url' ? 'Thumbnail / Cover Image' : key.replace('_', ' ');
                     
                     return (
@@ -474,7 +488,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                                 <Input
                                     value={formData[key] || ''}
                                     onChange={e => setFormData({...formData, [key]: e.target.value})}
-                                    placeholder={isDoc ? "URL to document..." : "URL to image..."}
+                                    placeholder={isDoc ? "URL to document..." : isAudio ? "URL to audio..." : "URL to image..."}
                                     className="flex-1"
                                 />
                             </div>
@@ -483,12 +497,13 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                                     <Button type="button" variant="outline" size="sm" disabled={uploading} className="relative cursor-pointer hover:bg-neutral-800">
                                         <Upload className="w-4 h-4 mr-2" /> 
                                         {uploading ? 'Uploading...' : 'Upload File'}
-                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileUpload(e, key, false)} accept={isDoc ? '.pdf,.doc,.docx' : 'image/*'} />
+                                        <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" onChange={(e) => handleFileUpload(e, key, false)} accept={isDoc ? '.pdf,.doc,.docx' : isAudio ? 'audio/*' : 'image/*'} />
                                     </Button>
                                 </div>
-                                <span className="text-xs text-neutral-500">{isDoc ? 'PDF/Doc (Max 10MB)' : 'JPG/PNG (Max 5MB)'}</span>
+                                <span className="text-xs text-neutral-500">{isDoc ? 'PDF/Doc (Max 10MB)' : isAudio ? 'MP3/WAV (Max 10MB)' : 'JPG/PNG (Max 5MB)'}</span>
                             </div>
-                            {(formData[key] && !isDoc) && <div className="mt-2 relative group w-fit"><img src={formData[key]} alt="Preview" className="h-32 w-auto object-contain bg-black rounded border border-neutral-700" /></div>}
+                            {(formData[key] && !isDoc && !isAudio) && <div className="mt-2 relative group w-fit"><img src={formData[key]} alt="Preview" className="h-32 w-auto object-contain bg-black rounded border border-neutral-700" /></div>}
+                            {(formData[key] && isAudio) && <div className="mt-2 relative group w-fit"><audio src={formData[key]} controls className="h-10 mt-2" /></div>}
                         </div>
                     );
                 }
@@ -672,9 +687,11 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
       case 'skills':
       case 'projects':
       case 'blog':
+      case 'music':
         const listData = activeTab === 'experience' ? data.experience : 
                          activeTab === 'skills' ? data.skills : 
                          activeTab === 'projects' ? data.projects : 
+                         activeTab === 'music' ? data.musics :
                          data.posts;
         return (
           <div className="space-y-6">
@@ -689,13 +706,23 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                        {(item.image_url || item.cover_image) && (
                            <img src={item.image_url || item.cover_image} alt="" className="w-12 h-12 rounded object-cover bg-neutral-800" />
                        )}
+                       {activeTab === 'music' && (
+                           <div className="w-12 h-12 rounded bg-neutral-800 flex items-center justify-center text-blue-500">
+                               <MusicIcon className="w-6 h-6" />
+                           </div>
+                       )}
                        <div>
                            <h4 className="font-bold text-neutral-200">{item.role || item.name || item.title}</h4>
-                           <p className="text-sm text-neutral-500">{item.company || item.category || item.created_at}</p>
+                           <p className="text-sm text-neutral-500">{item.company || item.category || item.artist || item.created_at}</p>
                            {activeTab === 'projects' && (item.gallery?.length > 0) && (
                                 <span className="text-xs text-blue-400 flex items-center gap-1 mt-1"><ImageIcon className="w-3 h-3" /> {item.gallery.length} photos</span>
                            )}
                            {activeTab === 'blog' && item.slug && <span className="text-xs text-green-500 mt-1 block">/{item.slug}</span>}
+                           {activeTab === 'music' && (
+                               <span className={`text-xs mt-1 block ${item.is_active ? 'text-green-500' : 'text-neutral-500'}`}>
+                                   {item.is_active ? 'Currently Active' : 'Inactive'}
+                               </span>
+                           )}
                        </div>
                     </div>
                     <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -728,6 +755,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
               { id: 'skills', icon: Code, label: 'Skills' },
               { id: 'projects', icon: Folder, label: 'Projects' },
               { id: 'blog', icon: FileText, label: 'Blog' },
+              { id: 'music', icon: MusicIcon, label: 'Background Music' },
               { id: 'messages', icon: Mail, label: 'Inbox Messages' },
               { id: 'subscribers', icon: Users, label: 'Newsletter Subs' },
             ].map(item => (
