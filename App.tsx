@@ -249,49 +249,76 @@ const Footer = () => {
 
 // --- MUSIC PLAYER ---
 const MusicPlayer = ({ musics }: { musics: Music[] }) => {
-    const activeMusic = musics.filter(m => m.is_active);
+    // Memoize valid tracks so reference doesn't change on route change re-renders
+    const validTracks = React.useMemo(() => musics.filter(m => m.is_active && m.audio_url), [musics]);
+    
     const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(true); // Default to true for autoplay
     const [isMuted, setIsMuted] = useState(false);
     const [showPlayer, setShowPlayer] = useState(false);
     const audioRef = React.useRef<HTMLAudioElement | null>(null);
-
-    // Filter valid tracks
-    const validTracks = activeMusic.filter(m => m.audio_url);
+    const hasInteracted = React.useRef(false);
 
     // Initialize audio ref
     useEffect(() => {
         if (!audioRef.current) {
             audioRef.current = new Audio();
-            // Try to autoplay muted to respect browser policies, then unmute if user interacts
             audioRef.current.loop = true;
         }
     }, []);
 
-    // Change track when index changes
+    // Change track when index changes without resetting if the same track is playing
     useEffect(() => {
         if (validTracks.length > 0 && audioRef.current) {
-            audioRef.current.src = validTracks[currentTrackIndex].audio_url;
-            if (isPlaying) {
-                audioRef.current.play().catch(e => console.log('Autoplay restricted:', e));
+            const newSrc = validTracks[currentTrackIndex].audio_url;
+            // Only update src if it's different to prevent restarting audio
+            if (!audioRef.current.src.endsWith(newSrc)) {
+                audioRef.current.src = newSrc;
+                if (isPlaying) {
+                    audioRef.current.play().catch(e => console.log('Autoplay restricted:', e));
+                }
             }
         }
     }, [currentTrackIndex, validTracks]);
 
-    // Update audio properties
+    // Update audio properties (play/pause/mute)
     useEffect(() => {
         if (audioRef.current) {
             audioRef.current.muted = isMuted;
             if (isPlaying) {
                 audioRef.current.play().catch(e => {
                     console.log('Autoplay restricted:', e);
-                    setIsPlaying(false);
+                    // Do not set isPlaying to false here so it can play on next interaction
                 });
             } else {
                 audioRef.current.pause();
             }
         }
     }, [isPlaying, isMuted]);
+
+    // Attempt to start playing on first user interaction if blocked
+    useEffect(() => {
+        const handleInteraction = () => {
+            if (!hasInteracted.current) {
+                hasInteracted.current = true;
+                if (isPlaying && audioRef.current && audioRef.current.paused) {
+                    audioRef.current.play().catch(e => console.log('Autoplay restricted on interaction:', e));
+                }
+            }
+        };
+
+        window.addEventListener('click', handleInteraction, { once: true });
+        window.addEventListener('touchstart', handleInteraction, { once: true });
+        window.addEventListener('scroll', handleInteraction, { once: true });
+        window.addEventListener('keydown', handleInteraction, { once: true });
+        
+        return () => {
+            window.removeEventListener('click', handleInteraction);
+            window.removeEventListener('touchstart', handleInteraction);
+            window.removeEventListener('scroll', handleInteraction);
+            window.removeEventListener('keydown', handleInteraction);
+        };
+    }, [isPlaying]);
 
     if (validTracks.length === 0) return null;
 
