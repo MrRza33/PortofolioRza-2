@@ -271,6 +271,30 @@ export const db = {
     }
   },
 
+  // ANALYTICS
+  async getAnalytics(): Promise<any[]> {
+    if (isSupabaseConfigured && supabase) {
+        const { data, error } = await supabase.from('analytics').select('*');
+        if (data) return data;
+        if (error) console.warn("Analytics fetch error:", error.message);
+    }
+    return [];
+  },
+
+  async recordVisit(path: string): Promise<void> {
+    if (isSupabaseConfigured && supabase) {
+        try {
+            await supabase.from('analytics').insert([{
+                path,
+                visitor_id: 'guest',
+                created_at: new Date().toISOString()
+            }]);
+        } catch (e) {
+            console.warn("Analytics record error", e);
+        }
+    }
+  },
+
   async getExperiences(): Promise<Experience[]> {
     if (isSupabaseConfigured && supabase) {
       const { data } = await supabase.from('experiences').select('*').order('period', { ascending: false });

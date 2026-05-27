@@ -91,6 +91,13 @@ export interface Music {
   created_at?: string;
 }
 
+export interface AnalyticsRecord {
+  id?: string;
+  path: string;
+  visitor_id?: string;
+  created_at: string;
+}
+
 export interface UserSession {
   user: {
     email: string;

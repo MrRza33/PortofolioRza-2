@@ -9,12 +9,18 @@ import { Button, Input, Card } from './components/ui';
 import { Loader2, Download, Home, Menu, X, ChevronRight, Music2, Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
-// --- SCROLL TO TOP UTILITY ---
-// Memastikan halaman kembali ke posisi paling atas saat pindah rute
-const ScrollToTop = () => {
+// --- SCROLL TO TOP & TRACKING UTILITY ---
+const PageTracker = () => {
     const { pathname } = useLocation();
+    
     useEffect(() => {
+        // Scroll to top
         window.scrollTo(0, 0);
+
+        // Record Visit if not admin
+        if (!pathname.includes('/admin') && !pathname.includes('/portalreza')) {
+            db.recordVisit(pathname);
+        }
     }, [pathname]);
     return null;
 };
@@ -457,6 +463,7 @@ function AppContent() {
         messages: ContactMessage[];
         subscribers: Subscriber[];
         musics: Music[];
+        analytics: any[];
     }>({
         profile: null,
         experience: [],
@@ -465,7 +472,8 @@ function AppContent() {
         posts: [],
         messages: [],
         subscribers: [],
-        musics: []
+        musics: [],
+        analytics: []
     });
 
     const initApp = async () => {
@@ -477,7 +485,7 @@ function AppContent() {
             }
 
             // 2. Fetch Data
-            const [profile, experience, skills, projects, posts, messages, subscribers, musics] = await Promise.all([
+            const [profile, experience, skills, projects, posts, messages, subscribers, musics, analytics] = await Promise.all([
                 db.getProfile(),
                 db.getExperiences(),
                 db.getSkills(),
@@ -486,9 +494,10 @@ function AppContent() {
                 // Only fetch messages/subs if auth, but for simple architecture we might fetch or return empty
                 db.getMessages(),
                 db.getSubscribers(),
-                db.getMusics()
+                db.getMusics(),
+                db.getAnalytics()
             ]);
-            setData({ profile, experience, skills, projects, posts, messages, subscribers, musics });
+            setData({ profile, experience, skills, projects, posts, messages, subscribers, musics, analytics });
         } catch (error) {
             console.error("Failed to load data", error);
         } finally {
@@ -520,7 +529,7 @@ function AppContent() {
 
     return (
         <div className="bg-black min-h-screen text-neutral-200 font-sans selection:bg-blue-500/30 selection:text-blue-200">
-            <ScrollToTop />
+            <PageTracker />
             <Navbar profile={data.profile} />
             {!isAdminRoute && data.musics && data.musics.length > 0 && (
                 <MusicPlayer musics={data.musics} />

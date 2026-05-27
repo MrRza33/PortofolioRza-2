@@ -298,7 +298,7 @@ export const About = ({ profile }: { profile: Profile }) => {
         <motion.div 
           initial="hidden"
           whileInView="visible"
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-100px" }}
           variants={fadeInUp}
           className="max-w-4xl mx-auto"
         >
@@ -335,7 +335,7 @@ export const ExperienceSection = ({ experiences }: { experiences: Experience[] }
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: "-100px" }}
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-white">Pengalaman & <span className="text-blue-500">Pendidikan</span></h2>
@@ -406,7 +406,7 @@ export const Skills = ({ skills }: { skills: Skill[] }) => {
                 key={catName}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
+                viewport={{ once: true, margin: "-100px" }}
                 className="space-y-6"
               >
                 <div className="flex items-center gap-3 mb-6">
@@ -427,7 +427,7 @@ export const Skills = ({ skills }: { skills: Skill[] }) => {
                         <motion.div 
                           initial={{ width: 0 }}
                           whileInView={{ width: `${skill.level}%` }}
-                          viewport={{ once: true }}
+                          viewport={{ once: true, margin: "-100px" }}
                           transition={{ duration: 1, ease: "easeOut" }}
                           className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full relative"
                         >
@@ -471,7 +471,7 @@ export const ProjectsTeaser = ({ projects }: { projects: Project[] }) => {
                        key={project.id}
                        initial={{ opacity: 0, y: 20 }}
                        whileInView={{ opacity: 1, y: 0 }}
-                       viewport={{ once: true }}
+                       viewport={{ once: true, margin: "-100px" }}
                        transition={{ delay: idx * 0.1 }}
                        className={`group relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 ${spanClass} cursor-pointer`}
                        onClick={() => setSelectedProject(project)}
@@ -538,7 +538,7 @@ export const BlogTeaser = ({ posts }: { posts: BlogPost[] }) => {
                    key={post.id}
                    initial={{ opacity: 0, y: 20 }}
                    whileInView={{ opacity: 1, y: 0 }}
-                   viewport={{ once: true }}
+                   viewport={{ once: true, margin: "-100px" }}
                    transition={{ delay: idx * 0.1 }}
                 >
                    <Card className="h-full border-neutral-800 bg-neutral-900 flex flex-col group hover:border-blue-500/30 transition-all">

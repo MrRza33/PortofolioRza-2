@@ -1,12 +1,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, Briefcase, Code, Folder, FileText, User, Upload, Image as ImageIcon, Mail, Users, Calendar, Bold, Italic, List, Heading, Link as LinkIcon, Eye, Settings, Check, Music as MusicIcon, PlayCircle, PauseCircle } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, LogOut, LayoutDashboard, Briefcase, Code, Folder, FileText, User, Upload, Image as ImageIcon, Mail, Users, Calendar, Bold, Italic, List, Heading, Link as LinkIcon, Eye, Settings, Check, Music as MusicIcon, PlayCircle, PauseCircle, BarChart } from 'lucide-react';
 import { Profile, Experience, Skill, Project, BlogPost, ContactMessage, Subscriber, Music } from '../types';
 import { Button, Input, Textarea, Card, Label, MarkdownRenderer, Switch } from './ui';
 import { db } from '../services/database';
 
-type Tab = 'profile' | 'experience' | 'skills' | 'projects' | 'blog' | 'messages' | 'subscribers' | 'music';
+type Tab = 'overview' | 'profile' | 'experience' | 'skills' | 'projects' | 'blog' | 'messages' | 'subscribers' | 'music';
 
 interface AdminProps {
   data: {
@@ -18,6 +18,7 @@ interface AdminProps {
     messages: ContactMessage[];
     subscribers: Subscriber[];
     musics: Music[];
+    analytics: any[];
   };
   refreshData: () => void;
   onLogout: () => void;
@@ -35,7 +36,7 @@ function generateUUID() {
 }
 
 export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
-  const [activeTab, setActiveTab] = useState<Tab>('profile');
+  const [activeTab, setActiveTab] = useState<Tab>('overview');
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
@@ -559,6 +560,53 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
 
     // List Views (UNCHANGED)
     switch(activeTab) {
+      case 'overview':
+        return (
+            <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                    <h3 className="text-2xl font-bold text-white">Dashboard Overview</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <Card className="p-6 bg-neutral-900 border-neutral-800 flex flex-col justify-between hover:border-neutral-700 transition-colors">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-neutral-400 font-medium">Page Views</h4>
+                            <BarChart className="w-5 h-5 text-blue-500" />
+                        </div>
+                        <div>
+                            <p className="text-3xl font-bold text-white">{data.analytics.length}</p>
+                            <p className="text-xs text-neutral-500 mt-1">Total track records</p>
+                        </div>
+                    </Card>
+                    <Card className="p-6 bg-neutral-900 border-neutral-800 flex flex-col justify-between hover:border-neutral-700 transition-colors">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-neutral-400 font-medium">Projects</h4>
+                            <Folder className="w-5 h-5 text-emerald-500" />
+                        </div>
+                        <div>
+                            <p className="text-3xl font-bold text-white">{data.projects.length}</p>
+                        </div>
+                    </Card>
+                    <Card className="p-6 bg-neutral-900 border-neutral-800 flex flex-col justify-between hover:border-neutral-700 transition-colors">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-neutral-400 font-medium">Blog Posts</h4>
+                            <FileText className="w-5 h-5 text-purple-500" />
+                        </div>
+                        <div>
+                            <p className="text-3xl font-bold text-white">{data.posts.length}</p>
+                        </div>
+                    </Card>
+                    <Card className="p-6 bg-neutral-900 border-neutral-800 flex flex-col justify-between hover:border-neutral-700 transition-colors">
+                        <div className="flex items-center justify-between mb-4">
+                            <h4 className="text-neutral-400 font-medium">Messages</h4>
+                            <Mail className="w-5 h-5 text-orange-500" />
+                        </div>
+                        <div>
+                            <p className="text-3xl font-bold text-white">{data.messages.length}</p>
+                        </div>
+                    </Card>
+                </div>
+            </div>
+        );
       case 'profile':
         return (
           <div className="space-y-6">
@@ -750,6 +798,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
          
          <nav className="space-y-1 flex-1">
             {[
+              { id: 'overview', icon: BarChart, label: 'Overview' },
               { id: 'profile', icon: User, label: 'Profile' },
               { id: 'experience', icon: Briefcase, label: 'Experience' },
               { id: 'skills', icon: Code, label: 'Skills' },
