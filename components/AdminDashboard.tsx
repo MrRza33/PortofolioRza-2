@@ -463,7 +463,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                 }
 
                 // Image/File Upload Fields
-                if (key.includes('_url') || key.includes('image') || key === 'cover_image') {
+                if ((key.includes('_url') && key !== 'demo_url' && key !== 'repo_url') || key.includes('image') || key === 'cover_image') {
                     const isDoc = key.includes('cv') || key.includes('pdf') || key.includes('portfolio');
                     const label = key === 'image_url' ? 'Thumbnail / Cover Image' : key.replace('_', ' ');
                     
