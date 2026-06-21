@@ -245,7 +245,15 @@ export const db = {
         if (error && error.code !== 'PGRST116') {
            throw error;
         }
-        if (data) return mergeWithDefaults(data);
+        if (data) {
+           const local = localStorage.getItem('profile');
+           if (local) {
+              const localData = JSON.parse(local);
+              // Merge db data as priority, but keep local fallback for missing columns
+              return mergeWithDefaults({ ...localData, ...data });
+           }
+           return mergeWithDefaults(data);
+        }
       } catch (e) {
         console.warn('Supabase fetch failed', e);
         throw e; // Throw so App.tsx can handle it as a paused state
@@ -277,10 +285,20 @@ export const db = {
        if (error.message.includes("Could not find the") && error.message.includes("column")) {
           // Keep a local cached version so the user can still see it in UI despite Supabase error if columns are missing
           localStorage.setItem('profile', JSON.stringify(profile));
-          throw new Error("Skema Database Belum Update: Tambahkan kolom untuk 'hero_image_url', 'popup_enabled', dll pada tabel 'profiles'. (Tersimpan sementara di lokal).");
+          
+          // Retry by stripping known newly added columns that might be missing in older schemas
+          const localOnlyKeys = ['hero_image_url', 'popup_enabled', 'popup_title', 'popup_description', 'popup_image_url', 'popup_link', 'popup_button_text', 'logo_url'];
+          localOnlyKeys.forEach(k => delete (payload as any)[k]);
+          
+          const { error: retryError } = await supabase.from('profiles').upsert(payload);
+          if (retryError) throw new Error(retryError.message);
+          return; // Success on retry
        }
        throw new Error(error.message);
     }
+    
+    // Update local config on success
+    localStorage.setItem('profile', JSON.stringify(profile));
   },
 
   // ANALYTICS

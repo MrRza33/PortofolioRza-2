@@ -6,7 +6,7 @@ import { Profile, Experience, Skill, Project, BlogPost, ContactMessage, Subscrib
 import { Button, Input, Textarea, Card, Label, MarkdownRenderer, Switch } from './ui';
 import { db } from '../services/database';
 
-type Tab = 'overview' | 'profile' | 'experience' | 'skills' | 'projects' | 'blog' | 'messages' | 'subscribers' | 'music';
+type Tab = 'overview' | 'profile' | 'hero-popup' | 'experience' | 'skills' | 'projects' | 'blog' | 'messages' | 'subscribers' | 'music';
 
 interface AdminProps {
   data: {
@@ -62,11 +62,21 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
   const startEdit = (item: any) => {
     if (activeTab === 'profile') {
         const fullProfile = {
-            ...item,
+            id: item.id,
+            name: item.name || '',
+            tagline: item.tagline || '',
+            bio: item.bio || '',
+            avatar_url: item.avatar_url || '',
             logo_url: item.logo_url || '',
+            cv_url: item.cv_url || '',
             portfolio_url: item.portfolio_url || '',
             years_experience: item.years_experience || '5+',
             brands_handled: item.brands_handled || '12+',
+            email: item.email || ''
+        };
+        setFormData(fullProfile);
+    } else if (activeTab === 'hero-popup') {
+        const heroPopupProfile = {
             hero_image_url: item.hero_image_url || '',
             popup_enabled: item.popup_enabled || false,
             popup_title: item.popup_title || '',
@@ -75,7 +85,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
             popup_link: item.popup_link || '',
             popup_button_text: item.popup_button_text || ''
         };
-        setFormData(fullProfile);
+        setFormData(heroPopupProfile);
     } else if (activeTab === 'blog') {
         setFormData({
             ...item,
@@ -116,7 +126,9 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
   const handleSave = async () => {
     if (!formData) return;
     try {
-      if (activeTab === 'profile') await db.updateProfile(formData);
+      if (activeTab === 'profile' || activeTab === 'hero-popup') {
+          await db.updateProfile({ ...data.profile, ...formData });
+      }
       else if (activeTab === 'experience') await db.saveExperience(formData);
       else if (activeTab === 'skills') await db.saveSkill(formData);
       else if (activeTab === 'projects') await db.saveProject(formData);
@@ -614,6 +626,48 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                 </div>
             </div>
         );
+      case 'hero-popup':
+        return (
+          <div className="space-y-6">
+             <div className="flex justify-between items-center">
+                <h3 className="text-2xl font-bold text-white">Hero & Promo Popup</h3>
+                <Button onClick={() => startEdit(data.profile)}><Edit2 className="w-4 h-4 mr-2" /> Edit Hero & Popup</Button>
+             </div>
+             <Card className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-neutral-900 border-neutral-800">
+                <div>
+                   <h4 className="text-xl font-bold text-white mb-4 border-b border-neutral-800 pb-2">Pengaturan Hero</h4>
+                   <Label className="mb-2 block">Hero Background Image</Label>
+                   {data.profile.hero_image_url ? (
+                       <img src={data.profile.hero_image_url} alt="Hero" className="w-full h-32 object-cover mb-4 border border-neutral-700 bg-neutral-800 rounded" />
+                   ) : (
+                       <div className="w-full h-32 bg-neutral-800 rounded mb-4 flex items-center justify-center text-xs text-neutral-500 border border-neutral-800">Belum ada gambar hero</div>
+                   )}
+                </div>
+                <div>
+                   <h4 className="text-xl font-bold text-white mb-4 border-b border-neutral-800 pb-2">Pengaturan Promo Popup</h4>
+                   <div className="flex items-center gap-2 mb-4">
+                       <span className={`px-2 py-1 rounded text-xs font-bold ${data.profile.popup_enabled ? 'bg-green-500/20 text-green-400' : 'bg-neutral-800 text-neutral-400'}`}>
+                          {data.profile.popup_enabled ? 'AKTIF' : 'NONAKTIF'}
+                       </span>
+                   </div>
+                   <Label>Judul Popup</Label>
+                   <p className="text-white mb-2">{data.profile.popup_title || '-'}</p>
+                   <Label>Deskripsi</Label>
+                   <p className="text-neutral-400 mb-4">{data.profile.popup_description || '-'}</p>
+                   {data.profile.popup_image_url && (
+                        <div className="mb-4">
+                            <Label className="mb-2 block">Gambar Popup</Label>
+                            <img src={data.profile.popup_image_url} alt="Popup" className="w-full h-24 object-cover border border-neutral-700 rounded bg-neutral-800" />
+                        </div>
+                   )}
+                   <Label>Link Tujuan</Label>
+                   <a href={data.profile.popup_link || '#'} className="text-blue-500 hover:underline text-sm block mb-2">{data.profile.popup_link || '-'}</a>
+                   <Label>Teks Tombol</Label>
+                   <p className="text-neutral-300">{data.profile.popup_button_text || '-'}</p>
+                </div>
+             </Card>
+          </div>
+        );
       case 'profile':
         return (
           <div className="space-y-6">
@@ -807,6 +861,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
             {[
               { id: 'overview', icon: BarChart, label: 'Overview' },
               { id: 'profile', icon: User, label: 'Profile' },
+              { id: 'hero-popup', icon: LayoutDashboard, label: 'Hero & Popup' },
               { id: 'experience', icon: Briefcase, label: 'Experience' },
               { id: 'skills', icon: Code, label: 'Skills' },
               { id: 'projects', icon: Folder, label: 'Projects' },
