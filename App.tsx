@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, Link, useNavigate } from 'react-router-dom';
 import { db } from './services/database';
-import { Hero, About, ExperienceSection, Skills, ProjectsTeaser, BlogTeaser, ProjectsPage, BlogPage, BlogDetail, ContactPage } from './components/PublicSections';
+import { Hero, About, ExperienceSection, Skills, ProjectsTeaser, BlogTeaser, ProjectsPage, BlogPage, BlogDetail, ContactPage, PromoPopup } from './components/PublicSections';
 import { AdminDashboard } from './components/AdminDashboard';
 import { Profile, Experience, Skill, Project, BlogPost, ContactMessage, Subscriber, Music } from './types';
 import { Button, Input, Card } from './components/ui';
@@ -534,6 +534,9 @@ function AppContent() {
             {!isAdminRoute && data.musics && data.musics.length > 0 && (
                 <MusicPlayer musics={data.musics} />
             )}
+            {!isAdminRoute && (
+                <PromoPopup profile={data.profile} />
+            )}
             <Routes>
                     {/* Home Route: Hero, About, Experience, Skills */}
                     <Route path="/" element={
@@ -542,23 +545,23 @@ function AppContent() {
                             <About profile={data.profile} />
                             <ExperienceSection experiences={data.experience} />
                             <Skills skills={data.skills} />
-                            <ProjectsTeaser projects={data.projects} />
-                            <BlogTeaser posts={data.posts} />
+                            <ProjectsTeaser projects={data.projects} profile={data.profile} />
+                            <BlogTeaser posts={data.posts} profile={data.profile} />
                         </main>
                     } />
                     
                     {/* Dedicated Pages */}
                     <Route path="/projects" element={
-                        <ProjectsPage projects={data.projects} portfolioUrl={data.profile.portfolio_url} />
+                        <ProjectsPage projects={data.projects} portfolioUrl={data.profile.portfolio_url} profile={data.profile} />
                     } />
                     
                     <Route path="/blog" element={
-                        <BlogPage posts={data.posts} />
+                        <BlogPage posts={data.posts} profile={data.profile} />
                     } />
 
                     {/* Blog Detail Route - Supports Slug or ID */}
                     <Route path="/blog/:slug" element={
-                        <BlogDetail posts={data.posts} />
+                        <BlogDetail posts={data.posts} profile={data.profile} />
                     } />
 
                     <Route path="/contact" element={

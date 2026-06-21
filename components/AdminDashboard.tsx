@@ -66,7 +66,14 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
             logo_url: item.logo_url || '',
             portfolio_url: item.portfolio_url || '',
             years_experience: item.years_experience || '5+',
-            brands_handled: item.brands_handled || '12+'
+            brands_handled: item.brands_handled || '12+',
+            hero_image_url: item.hero_image_url || '',
+            popup_enabled: item.popup_enabled || false,
+            popup_title: item.popup_title || '',
+            popup_description: item.popup_description || '',
+            popup_image_url: item.popup_image_url || '',
+            popup_link: item.popup_link || '',
+            popup_button_text: item.popup_button_text || ''
         };
         setFormData(fullProfile);
     } else if (activeTab === 'blog') {
@@ -467,11 +474,11 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                     )
                 }
 
-                if (key === 'is_active') {
+                if (key === 'is_active' || key === 'popup_enabled') {
                     return (
                         <div key={key} className="flex items-center gap-2 mt-4">
-                             <input type="checkbox" id="is_active_check" checked={formData[key]} onChange={(e) => setFormData({...formData, [key]: e.target.checked})} className="w-4 h-4" />
-                             <Label htmlFor="is_active_check" className="cursor-pointer">Active (Set as main track if true)</Label>
+                             <input type="checkbox" id={`${key}_check`} checked={formData[key] || false} onChange={(e) => setFormData({...formData, [key]: e.target.checked})} className="w-4 h-4" />
+                             <Label htmlFor={`${key}_check`} className="cursor-pointer capitalize">{key.replace('_', ' ')}</Label>
                         </div>
                     )
                 }
@@ -509,7 +516,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
                     );
                 }
 
-                if (key === 'description' || key === 'bio' || key === 'content' || key === 'excerpt') {
+                if (key === 'description' || key === 'bio' || key === 'content' || key === 'excerpt' || key === 'popup_description') {
                    return (
                      <div key={key}>
                        <Label className="capitalize">{key.replace('_', ' ')}</Label>

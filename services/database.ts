@@ -27,7 +27,14 @@ const MOCK_DATA = {
     brands_handled: '20+',
     email: 'alex@example.com',
     github: 'https://github.com',
-    linkedin: 'https://linkedin.com'
+    linkedin: 'https://linkedin.com',
+    hero_image_url: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?fit=crop&w=1920&q=80',
+    popup_enabled: true,
+    popup_title: 'Dapatkan Konsultasi Gratis!',
+    popup_description: 'Tingkatkan prospek bisnis Anda dengan strategi digital yang jitu. Jadwalkan sesi 30 menit tanpa biaya.',
+    popup_image_url: 'https://images.unsplash.com/photo-1552664730-d307ca884978?fit=crop&w=600&q=80',
+    popup_link: '#contact',
+    popup_button_text: 'Jadwalkan Sekarang'
   },
   experience: [
     { id: 'e1b2d63d-a1f2-4f3b-b6c8-e2f4a5b6c7d1', role: 'Digital Marketing Lead', company: 'Growth Agency Indonesia', period: '2022 - Sekarang', description: 'Mengelola budget iklan bulanan IDR 100jt+ untuk klien lintas industri. Meningkatkan ROAS (Return on Ad Spend) rata-rata sebesar 300% melalui optimasi Meta Ads dan Google Ads.', type: 'work' },
@@ -263,9 +270,10 @@ export const db = {
 
     const { error } = await supabase.from('profiles').upsert(payload);
     if (error) {
-       // Deteksi error spesifik tentang kolom yang hilang
        if (error.message.includes("Could not find the") && error.message.includes("column")) {
-          throw new Error("Skema Database Belum Update: Silahkan jalankan script SQL migrasi di Supabase untuk menambahkan kolom 'years_experience', 'brands_handled', atau 'logo_url'.");
+          // Keep a local cached version so the user can still see it in UI despite Supabase error if columns are missing
+          localStorage.setItem('profile', JSON.stringify(profile));
+          throw new Error("Skema Database Belum Update: Tambahkan kolom untuk 'hero_image_url', 'popup_enabled', dll pada tabel 'profiles'. (Tersimpan sementara di lokal).");
        }
        throw new Error(error.message);
     }
@@ -305,7 +313,11 @@ export const db = {
 
   async saveExperience(item: Experience): Promise<void> {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
-    const { error } = await supabase.from('experiences').upsert(sanitizePayload(item));
+    const payload = sanitizePayload(item);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) payload.user_id = user.id;
+
+    const { error } = await supabase.from('experiences').upsert(payload);
     if (error) throw new Error(error.message);
   },
 
@@ -325,7 +337,11 @@ export const db = {
 
   async saveSkill(item: Skill): Promise<void> {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
-    const { error } = await supabase.from('skills').upsert(sanitizePayload(item));
+    const payload = sanitizePayload(item);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) payload.user_id = user.id;
+
+    const { error } = await supabase.from('skills').upsert(payload);
     if (error) throw new Error(error.message);
   },
 
@@ -345,7 +361,11 @@ export const db = {
 
   async saveProject(item: Project): Promise<void> {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
-    const { error } = await supabase.from('projects').upsert(sanitizePayload(item));
+    const payload = sanitizePayload(item);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) payload.user_id = user.id;
+
+    const { error } = await supabase.from('projects').upsert(payload);
     if (error) throw new Error(error.message);
   },
 
@@ -365,7 +385,11 @@ export const db = {
 
   async savePost(item: BlogPost): Promise<void> {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
-    const { error } = await supabase.from('posts').upsert(sanitizePayload(item));
+    const payload = sanitizePayload(item);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) payload.user_id = user.id;
+
+    const { error } = await supabase.from('posts').upsert(payload);
     if (error) throw new Error(error.message);
   },
 
@@ -451,7 +475,11 @@ export const db = {
 
   async saveMusic(item: Music): Promise<void> {
      if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
-     const { error } = await supabase.from('musics').upsert(sanitizePayload(item));
+     const payload = sanitizePayload(item);
+     const { data: { user } } = await supabase.auth.getUser();
+     if (user) payload.user_id = user.id;
+
+     const { error } = await supabase.from('musics').upsert(payload);
      if (error) throw new Error(error.message);
   },
 

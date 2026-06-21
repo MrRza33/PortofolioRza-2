@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useParams } from 'react-router-dom';
-import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, GraduationCap, ArrowRight, Code, Database, Layout, PenTool, Send, CheckCircle, MessageSquare, User, Box, X, ChevronLeft, ChevronRight, Loader2, Tag } from 'lucide-react';
+import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, GraduationCap, ArrowRight, Code, Database, Layout, PenTool, Send, CheckCircle, MessageSquare, User, Box, X, ChevronLeft, ChevronRight, Loader2, Tag, Server, Monitor, Smartphone, Cpu, Cloud, Star, Search, Image as ImageIcon, Video, Headset, Lock, Globe, Terminal, Paintbrush, Book, Layers, Cpu as CpuIcon, Database as DatabaseIcon, Zap, Settings, Globe as GlobeIcon, FileCode2, MonitorSmartphone } from 'lucide-react';
 import { Profile, Experience, Skill, Project, BlogPost, Comment } from '../types';
 import { Button, Card, Input, Textarea, Label, MarkdownRenderer } from './ui';
 import { db } from '../services/database';
@@ -219,7 +219,7 @@ export const Hero = ({ profile }: { profile: Profile }) => {
             className="w-full h-full object-cover object-top opacity-40"
         />
       </div>
-      
+
       <div className="container mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-12 pt-10 md:pt-0">
         <motion.div 
           initial="hidden"
@@ -293,8 +293,18 @@ export const Hero = ({ profile }: { profile: Profile }) => {
 // --- ABOUT SECTION ---
 export const About = ({ profile }: { profile: Profile }) => {
   return (
-    <section id="about" className="py-24 bg-neutral-900/30">
-      <div className="container mx-auto px-6">
+    <section id="about" className="py-24 bg-neutral-900/30 relative overflow-hidden">
+      {profile.hero_image_url && (
+        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+            <div className="absolute inset-0 bg-black/80 z-10" />
+            <img 
+                src={profile.hero_image_url} 
+                alt="" 
+                className="w-full h-full object-cover object-center opacity-30"
+            />
+        </div>
+      )}
+      <div className="container mx-auto px-6 relative z-10">
         <motion.div 
           initial="hidden"
           whileInView="visible"
@@ -378,11 +388,27 @@ export const Skills = ({ skills }: { skills: Skill[] }) => {
   const getCategoryIcon = (category: string) => {
       const lower = category.toLowerCase();
       if (lower.includes('front')) return Layout;
-      if (lower.includes('back')) return Database;
+      if (lower.includes('back')) return Server;
       if (lower.includes('tool')) return PenTool;
       if (lower.includes('soft')) return User;
-      if (lower.includes('mobile')) return Box;
-      return Code;
+      if (lower.includes('mobile')) return Smartphone;
+      if (lower.includes('data')) return DatabaseIcon;
+      if (lower.includes('cloud')) return Cloud;
+      if (lower.includes('design')) return Paintbrush;
+      if (lower.includes('web')) return GlobeIcon;
+      if (lower.includes('api')) return Zap;
+      if (lower.includes('sys') || lower.includes('admin')) return Settings;
+      if (lower.includes('ai') || lower.includes('machine')) return CpuIcon;
+      if (lower.includes('game')) return MonitorSmartphone;
+      if (lower.includes('test')) return CheckCircle;
+      
+      // Hash string to pick a predictable icon from a generic set if no keywords match
+      const genericIcons = [Code, FileCode2, Layers, Box, Terminal, Book, Star];
+      let hash = 0;
+      for (let i = 0; i < category.length; i++) {
+        hash = category.charCodeAt(i) + ((hash << 5) - hash);
+      }
+      return genericIcons[Math.abs(hash) % genericIcons.length];
   };
 
   return (
@@ -406,7 +432,7 @@ export const Skills = ({ skills }: { skills: Skill[] }) => {
                 key={catName}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
+                viewport={{ once: true }}
                 className="space-y-6"
               >
                 <div className="flex items-center gap-3 mb-6">
@@ -427,7 +453,7 @@ export const Skills = ({ skills }: { skills: Skill[] }) => {
                         <motion.div 
                           initial={{ width: 0 }}
                           whileInView={{ width: `${skill.level}%` }}
-                          viewport={{ once: true, margin: "-100px" }}
+                          viewport={{ once: true }}
                           transition={{ duration: 1, ease: "easeOut" }}
                           className="h-full bg-gradient-to-r from-blue-600 to-indigo-500 rounded-full relative"
                         >
@@ -447,7 +473,7 @@ export const Skills = ({ skills }: { skills: Skill[] }) => {
 };
 
 // --- PROJECTS TEASER (FOR HOME - BENTO STYLE) ---
-export const ProjectsTeaser = ({ projects }: { projects: Project[] }) => {
+export const ProjectsTeaser = ({ projects, profile }: { projects: Project[], profile?: Profile }) => {
   const displayProjects = projects.slice(0, 3); // Max 3 items
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   
@@ -521,7 +547,7 @@ export const ProjectsTeaser = ({ projects }: { projects: Project[] }) => {
 };
 
 // --- BLOG TEASER (FOR HOME) ---
-export const BlogTeaser = ({ posts }: { posts: BlogPost[] }) => {
+export const BlogTeaser = ({ posts, profile }: { posts: BlogPost[], profile?: Profile }) => {
   const displayPosts = posts.slice(0, 3); // Limit to 3 items
 
   return (
@@ -571,7 +597,7 @@ export const BlogTeaser = ({ posts }: { posts: BlogPost[] }) => {
 };
 
 // --- PROJECTS PAGE (MOSAIC/MASONRY FEEL) ---
-export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], portfolioUrl?: string }) => {
+export const ProjectsPage = ({ projects, portfolioUrl, profile }: { projects: Project[], portfolioUrl?: string, profile?: Profile }) => {
   const [filter, setFilter] = useState('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const categories = ['all', ...Array.from(new Set(projects.map(p => p.category)))];
@@ -581,8 +607,18 @@ export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], 
     : projects.filter(p => p.category === filter);
 
   return (
-    <div className="pt-24 min-h-screen bg-black">
-      <div className="container mx-auto px-6 py-12">
+    <div className="pt-24 min-h-screen bg-black relative overflow-hidden">
+      {profile?.hero_image_url && (
+          <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+              <div className="absolute inset-0 bg-black/80 z-10" />
+              <img 
+                  src={profile.hero_image_url} 
+                  alt="" 
+                  className="w-full h-full object-cover object-center opacity-30 fixed top-0 left-0"
+              />
+          </div>
+      )}
+      <div className="container mx-auto px-6 py-12 relative z-10">
         <div className="text-center mb-16">
           <motion.h1 
              initial={{ opacity: 0, y: -20 }}
@@ -686,13 +722,23 @@ export const ProjectsPage = ({ projects, portfolioUrl }: { projects: Project[], 
 };
 
 // --- BLOG LIST PAGE ---
-export const BlogPage = ({ posts }: { posts: BlogPost[] }) => {
+export const BlogPage = ({ posts, profile }: { posts: BlogPost[], profile?: Profile }) => {
     const featuredPost = posts[0];
     const otherPosts = posts.slice(1);
 
     return (
-        <div className="pt-24 min-h-screen bg-black">
-            <div className="container mx-auto px-6 py-12">
+        <div className="pt-24 min-h-screen bg-black relative overflow-hidden">
+            {profile?.hero_image_url && (
+                <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                    <div className="absolute inset-0 bg-black/80 z-10" />
+                    <img 
+                        src={profile.hero_image_url} 
+                        alt="" 
+                        className="w-full h-full object-cover object-center opacity-30 fixed top-0 left-0"
+                    />
+                </div>
+            )}
+            <div className="container mx-auto px-6 py-12 relative z-10">
                 <div className="text-center mb-16">
                     <motion.h1 
                         initial={{ opacity: 0, y: -20 }}
@@ -788,7 +834,7 @@ export const BlogPage = ({ posts }: { posts: BlogPost[] }) => {
 };
 
 // --- BLOG DETAIL PAGE ---
-export const BlogDetail = ({ posts }: { posts: BlogPost[] }) => {
+export const BlogDetail = ({ posts, profile }: { posts: BlogPost[], profile?: Profile }) => {
     // We expect slug now, but fallback to ID logic if needed
     const { slug } = useParams();
     
@@ -1000,8 +1046,18 @@ export const ContactPage = ({ profile }: { profile: Profile }) => {
     };
 
     return (
-        <div className="pt-24 min-h-screen bg-black flex flex-col">
-            <div className="container mx-auto px-6 py-12 flex-1">
+        <div className="pt-24 min-h-screen bg-black flex flex-col relative overflow-hidden">
+            {profile?.hero_image_url && (
+                <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+                    <div className="absolute inset-0 bg-black/80 z-10" />
+                    <img 
+                        src={profile.hero_image_url} 
+                        alt="" 
+                        className="w-full h-full object-cover object-center opacity-30 fixed top-0 left-0"
+                    />
+                </div>
+            )}
+            <div className="container mx-auto px-6 py-12 flex-1 relative z-10">
                 <div className="max-w-4xl mx-auto">
                     <div className="text-center mb-16">
                         <motion.h1 
@@ -1109,5 +1165,78 @@ export const ContactPage = ({ profile }: { profile: Profile }) => {
             </div>
             <SubscriptionCTA />
         </div>
+    );
+};
+
+// --- PROMO POPUP ---
+export const PromoPopup = ({ profile }: { profile: Profile }) => {
+    const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        if (!profile.popup_enabled) return;
+
+        // Cek LocalStorage apakah user sudah pernah melihat popup
+        const hasSeenPopup = localStorage.getItem('hasSeenPromoPopup');
+        
+        let shouldShow = false;
+        
+        if (!hasSeenPopup) {
+            shouldShow = true;
+        }
+
+        if (shouldShow) {
+            const timer = setTimeout(() => {
+                setIsOpen(true);
+                localStorage.setItem('hasSeenPromoPopup', 'true');
+            }, 3000); // Muncul setelah 3 detik
+
+            return () => clearTimeout(timer);
+        }
+    }, [profile.popup_enabled]);
+
+    if (!isOpen || !profile.popup_enabled) return null;
+
+    return (
+        <AnimatePresence>
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="fixed z-[100] bottom-4 right-4 md:bottom-8 md:right-8 bg-neutral-900 border border-neutral-800 rounded-2xl overflow-hidden shadow-2xl flex flex-col w-[320px]"
+            >
+                <div className="relative">
+                    <button 
+                        onClick={() => setIsOpen(false)}
+                        className="absolute top-2 right-2 z-10 w-6 h-6 flex items-center justify-center bg-black/50 hover:bg-black rounded-full text-white transition-colors"
+                    >
+                        <X className="w-4 h-4" />
+                    </button>
+                    {profile.popup_image_url && (
+                        <div className="w-full h-32 overflow-hidden bg-black">
+                            <img src={profile.popup_image_url} alt="" className="w-full h-full object-cover" />
+                        </div>
+                    )}
+                </div>
+                <div className="p-5 flex flex-col text-left">
+                    {profile.popup_title && (
+                        <h3 className="text-lg font-bold text-white mb-2">
+                            {profile.popup_title}
+                        </h3>
+                    )}
+                    {profile.popup_description && (
+                        <p className="text-neutral-400 text-sm leading-relaxed mb-4">
+                            {profile.popup_description}
+                        </p>
+                    )}
+                    <a 
+                        href={profile.popup_link || '#'}
+                        onClick={() => setIsOpen(false)}
+                        className="inline-flex items-center justify-center w-full px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition-colors text-sm"
+                    >
+                        {profile.popup_button_text || 'Lihat Penawaran'}
+                    </a>
+                </div>
+            </motion.div>
+        </AnimatePresence>
     );
 };

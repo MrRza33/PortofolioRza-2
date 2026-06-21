@@ -15,6 +15,13 @@ export interface Profile {
   email: string;
   github: string;
   linkedin: string;
+  hero_image_url?: string;
+  popup_enabled?: boolean;
+  popup_title?: string;
+  popup_description?: string;
+  popup_image_url?: string;
+  popup_link?: string;
+  popup_button_text?: string;
 }
 
 export interface Experience {
