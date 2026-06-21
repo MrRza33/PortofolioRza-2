@@ -454,6 +454,7 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
 function AppContent() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [dataError, setDataError] = useState(false);
     const [data, setData] = useState<{
         profile: Profile | null;
         experience: Experience[];
@@ -491,7 +492,6 @@ function AppContent() {
                 db.getSkills(),
                 db.getProjects(),
                 db.getPosts(),
-                // Only fetch messages/subs if auth, but for simple architecture we might fetch or return empty
                 db.getMessages(),
                 db.getSubscribers(),
                 db.getMusics(),
@@ -500,6 +500,7 @@ function AppContent() {
             setData({ profile, experience, skills, projects, posts, messages, subscribers, musics, analytics });
         } catch (error) {
             console.error("Failed to load data", error);
+            setDataError(true);
         } finally {
             setLoading(false);
         }
@@ -521,6 +522,21 @@ function AppContent() {
         return (
             <div className="min-h-screen bg-black flex items-center justify-center text-blue-500">
                 <Loader2 className="w-10 h-10 animate-spin" />
+            </div>
+        );
+    }
+
+    if (dataError) {
+        return (
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center text-neutral-400 p-6">
+                <Loader2 className="w-10 h-10 animate-spin mb-4 text-blue-500" />
+                <h2 className="text-xl font-bold text-white mb-2 text-center">Memproses Data Server...</h2>
+                <p className="max-w-md text-center text-sm text-neutral-500">
+                    Menunggu respons dari database. Jika Anda tidak dapat mengakses website, project backend (Supabase) Anda mungkin sedang dalam status "Paused" karena tidak ada aktivitas selama 7 hari. Silakan login ke dashboard Supabase Anda untuk mengaktifkannya kembali (Restore).
+                </p>
+                <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer" className="mt-6 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm transition-colors">
+                    Buka Dashboard Supabase
+                </a>
             </div>
         );
     }

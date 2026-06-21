@@ -242,9 +242,13 @@ export const db = {
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.from('profiles').select('*').single();
+        if (error && error.code !== 'PGRST116') {
+           throw error;
+        }
         if (data) return mergeWithDefaults(data);
       } catch (e) {
         console.warn('Supabase fetch failed', e);
+        throw e; // Throw so App.tsx can handle it as a paused state
       }
     }
     // Check Local Storage
@@ -305,8 +309,9 @@ export const db = {
 
   async getExperiences(): Promise<Experience[]> {
     if (isSupabaseConfigured && supabase) {
-      const { data } = await supabase.from('experiences').select('*').order('period', { ascending: false });
-      if (data && data.length > 0) return (data as any[]).map(d => ({...d, type: d.type as 'work'|'education'}));
+      const { data, error } = await supabase.from('experiences').select('*').order('period', { ascending: false });
+      if (error && error.code !== '42P01') throw error;
+      return (data || []).map(d => ({...d, type: d.type as 'work'|'education'}));
     }
     return MOCK_DATA.experience as Experience[];
   },
@@ -329,8 +334,9 @@ export const db = {
 
   async getSkills(): Promise<Skill[]> {
     if (isSupabaseConfigured && supabase) {
-        const { data } = await supabase.from('skills').select('*');
-        if (data && data.length > 0) return data as any[];
+        const { data, error } = await supabase.from('skills').select('*');
+        if (error && error.code !== '42P01') throw error;
+        return data as any[] || [];
     }
     return MOCK_DATA.skills as Skill[];
   },
@@ -353,8 +359,9 @@ export const db = {
 
   async getProjects(): Promise<Project[]> {
     if (isSupabaseConfigured && supabase) {
-        const { data } = await supabase.from('projects').select('*');
-        if (data && data.length > 0) return data as any[];
+        const { data, error } = await supabase.from('projects').select('*');
+        if (error && error.code !== '42P01') throw error;
+        return data as any[] || [];
     }
     return MOCK_DATA.projects;
   },
@@ -377,8 +384,9 @@ export const db = {
 
   async getPosts(): Promise<BlogPost[]> {
     if (isSupabaseConfigured && supabase) {
-        const { data } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
-        if (data && data.length > 0) return data as any[];
+        const { data, error } = await supabase.from('posts').select('*').order('created_at', { ascending: false });
+        if (error && error.code !== '42P01') throw error;
+        return data as any[] || [];
     }
     return MOCK_DATA.posts;
   },
@@ -423,8 +431,9 @@ export const db = {
   // MESSAGES (INBOX)
   async getMessages(): Promise<ContactMessage[]> {
      if (isSupabaseConfigured && supabase) {
-        const { data } = await supabase.from('messages').select('*').order('created_at', { ascending: false });
-        if (data && data.length > 0) return data as any[];
+        const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: false });
+        if (error && error.code !== '42P01') throw error;
+        return data as any[] || [];
      }
      return MOCK_DATA.messages as ContactMessage[];
   },
@@ -444,8 +453,9 @@ export const db = {
   // SUBSCRIBERS
   async getSubscribers(): Promise<Subscriber[]> {
      if (isSupabaseConfigured && supabase) {
-        const { data } = await supabase.from('subscribers').select('*').order('created_at', { ascending: false });
-        if (data && data.length > 0) return data as any[];
+        const { data, error } = await supabase.from('subscribers').select('*').order('created_at', { ascending: false });
+        if (error && error.code !== '42P01') throw error;
+        return data as any[] || [];
      }
      return MOCK_DATA.subscribers as Subscriber[];
   },
@@ -467,8 +477,8 @@ export const db = {
   async getMusics(): Promise<Music[]> {
      if (isSupabaseConfigured && supabase) {
         const { data, error } = await supabase.from('musics').select('*');
-        if (data) return data as Music[];
-        if (error) console.warn("Musics fetch error (Table might not exist yet):", error.message);
+        if (error && error.code !== '42P01') throw error;
+        return data as Music[] || [];
      }
      return MOCK_DATA.musics as Music[];
   },
