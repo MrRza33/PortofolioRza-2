@@ -1,5 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
+import imageCompression from 'browser-image-compression';
 import { Profile, Experience, Skill, Project, BlogPost, Comment, ContactMessage, Subscriber, Music } from '../types';
 
 // Supabase Configuration from User Input
@@ -520,14 +521,29 @@ export const db = {
   async uploadFile(file: File, bucket: string = 'portfolio'): Promise<string> {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
 
-    const fileExt = file.name.split('.').pop();
+    let fileToUpload = file;
+    // Kompresi jika file adalah gambar
+    if (file.type.startsWith('image/')) {
+        try {
+            const options = {
+                maxSizeMB: 1,          // Maksimal 1MB
+                maxWidthOrHeight: 1920, // Max resolusi
+                useWebWorker: true
+            };
+            fileToUpload = await imageCompression(file, options);
+        } catch (error) {
+            console.warn("Kompression gambar gagal, menggunakan file asli", error);
+        }
+    }
+
+    const fileExt = file.name.split('.').pop() || 'png';
     const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
     const filePath = `${fileName}`;
 
     // Upload ke Supabase Storage
     const { error: uploadError } = await supabase.storage
       .from(bucket)
-      .upload(filePath, file);
+      .upload(filePath, fileToUpload);
 
     if (uploadError) {
       console.error("Supabase Storage Upload Error:", uploadError);
