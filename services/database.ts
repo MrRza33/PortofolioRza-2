@@ -341,7 +341,12 @@ export const db = {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) payload.user_id = user.id;
 
-    const { error } = await supabase.from('experiences').upsert(payload);
+    let { error } = await supabase.from('experiences').upsert(payload);
+    if (error && error.message.includes("Could not find the 'user_id' column")) {
+       delete payload.user_id;
+       const retry = await supabase.from('experiences').upsert(payload);
+       error = retry.error;
+    }
     if (error) throw new Error(error.message);
   },
 
@@ -366,7 +371,12 @@ export const db = {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) payload.user_id = user.id;
 
-    const { error } = await supabase.from('skills').upsert(payload);
+    let { error } = await supabase.from('skills').upsert(payload);
+    if (error && error.message.includes("Could not find the 'user_id' column")) {
+       delete payload.user_id;
+       const retry = await supabase.from('skills').upsert(payload);
+       error = retry.error;
+    }
     if (error) throw new Error(error.message);
   },
 
@@ -391,7 +401,12 @@ export const db = {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) payload.user_id = user.id;
 
-    const { error } = await supabase.from('projects').upsert(payload);
+    let { error } = await supabase.from('projects').upsert(payload);
+    if (error && error.message.includes("Could not find the 'user_id' column")) {
+       delete payload.user_id;
+       const retry = await supabase.from('projects').upsert(payload);
+       error = retry.error;
+    }
     if (error) throw new Error(error.message);
   },
 
@@ -416,7 +431,12 @@ export const db = {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) payload.user_id = user.id;
 
-    const { error } = await supabase.from('posts').upsert(payload);
+    let { error } = await supabase.from('posts').upsert(payload);
+    if (error && error.message.includes("Could not find the 'user_id' column")) {
+       delete payload.user_id;
+       const retry = await supabase.from('posts').upsert(payload);
+       error = retry.error;
+    }
     if (error) throw new Error(error.message);
   },
 
@@ -508,7 +528,12 @@ export const db = {
      const { data: { user } } = await supabase.auth.getUser();
      if (user) payload.user_id = user.id;
 
-     const { error } = await supabase.from('musics').upsert(payload);
+     let { error } = await supabase.from('musics').upsert(payload);
+     if (error && error.message.includes("Could not find the 'user_id' column")) {
+         delete payload.user_id;
+         const retry = await supabase.from('musics').upsert(payload);
+         error = retry.error;
+     }
      if (error) throw new Error(error.message);
   },
 

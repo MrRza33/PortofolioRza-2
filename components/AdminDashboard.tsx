@@ -96,6 +96,9 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
         });
         setBlogTab('content'); // Reset to content tab
         setShowPreview(false);
+    } else if (activeTab === 'projects') {
+        const { repo_url, ...projectData } = item;
+        setFormData({ ...projectData });
     } else {
         setFormData({ ...item });
     }
@@ -108,7 +111,7 @@ export const AdminDashboard = ({ data, refreshData, onLogout }: AdminProps) => {
     const emptyModels: any = {
       experience: { id: newId, role: '', company: '', period: '', description: '', type: 'work' },
       skills: { id: newId, name: '', category: 'Frontend', level: 50 },
-      projects: { id: newId, title: '', description: '', image_url: '', gallery: [], tags: [], category: 'Web', demo_url: '', repo_url: '' },
+      projects: { id: newId, title: '', description: '', image_url: '', gallery: [], tags: [], category: 'Web', demo_url: '' },
       blog: { id: newId, title: '', excerpt: '', content: '', cover_image: '', created_at: new Date().toISOString(), category: 'General', slug: '', meta_title: '', meta_description: '', tags: [] },
       music: { id: newId, title: '', artist: '', audio_url: '', is_active: true }
     };

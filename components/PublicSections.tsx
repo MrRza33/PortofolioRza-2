@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useParams } from 'react-router-dom';
-import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, GraduationCap, ArrowRight, Code, Database, Layout, PenTool, Send, CheckCircle, MessageSquare, User, Box, X, ChevronLeft, ChevronRight, Loader2, Tag, Server, Monitor, Smartphone, Cpu, Cloud, Star, Search, Image as ImageIcon, Video, Headset, Lock, Globe, Terminal, Paintbrush, Book, Layers, Cpu as CpuIcon, Database as DatabaseIcon, Zap, Settings, Globe as GlobeIcon, FileCode2, MonitorSmartphone } from 'lucide-react';
+import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, GraduationCap, ArrowRight, Code, Database, Layout, PenTool, Send, CheckCircle, MessageSquare, User, Box, X, ChevronLeft, ChevronRight, Loader2, Tag, Server, Monitor, Smartphone, Cpu, Cloud, Star, Search, Image as ImageIcon, Video, Headset, Lock, Globe, Terminal, Paintbrush, Book, Layers, Cpu as CpuIcon, Database as DatabaseIcon, Zap, Settings, Globe as GlobeIcon, FileCode2, MonitorSmartphone, Eye } from 'lucide-react';
 import { Profile, Experience, Skill, Project, BlogPost, Comment } from '../types';
 import { Button, Card, Input, Textarea, Label, MarkdownRenderer } from './ui';
 import { db } from '../services/database';
@@ -187,12 +187,7 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
                     <div className="mt-auto space-y-4 pt-6 border-t border-neutral-800">
                         {project.demo_url && (
                             <a href={project.demo_url} target="_blank" rel="noreferrer" className="flex items-center justify-center w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors">
-                                <ExternalLink className="w-4 h-4 mr-2" /> Live Demo / Visit Link
-                            </a>
-                        )}
-                        {project.repo_url && (
-                            <a href={project.repo_url} target="_blank" rel="noreferrer" className="flex items-center justify-center w-full py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-lg font-medium transition-colors">
-                                <Github className="w-4 h-4 mr-2" /> View Repository
+                                <ExternalLink className="w-4 h-4 mr-2" /> Preview
                             </a>
                         )}
                     </div>
@@ -686,6 +681,11 @@ export const ProjectsPage = ({ projects, portfolioUrl, profile }: { projects: Pr
                                         {tag}
                                     </span>
                                 ))}
+                            </div>
+                            <div className="mt-6 flex justify-center">
+                                <span className="inline-flex items-center gap-2 text-sm font-medium text-white bg-blue-600/80 hover:bg-blue-600 px-4 py-2 rounded-full backdrop-blur-md transition-colors">
+                                    <Eye className="w-4 h-4" /> Lihat Detail / Preview
+                                </span>
                             </div>
                         </div>
                     </div>

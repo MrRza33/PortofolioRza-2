@@ -48,7 +48,6 @@ export interface Project {
   gallery?: string[]; // Array of images for carousel
   tags: string[];
   demo_url?: string;
-  repo_url?: string;
   category: string;
 }
 
