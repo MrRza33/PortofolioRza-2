@@ -1,7 +1,18 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 
 export const AmbientBackground = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768 || window.matchMedia("(pointer: coarse)").matches);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   return (
     <div className="fixed inset-0 z-[-2] pointer-events-none overflow-hidden">
       {/* Noise Texture */}
@@ -12,33 +23,37 @@ export const AmbientBackground = () => {
         }}
       />
       
-      {/* Animated Ambient Glow */}
-      <motion.div
-        animate={{
-          x: ['0%', '2%', '-2%', '0%'],
-          y: ['0%', '-2%', '2%', '0%'],
-          scale: [1, 1.05, 0.95, 1],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-        className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vh] bg-blue-600/10 rounded-full blur-[120px]"
-      />
-      <motion.div
-        animate={{
-          x: ['0%', '-3%', '3%', '0%'],
-          y: ['0%', '3%', '-3%', '0%'],
-          scale: [1, 0.95, 1.05, 1],
-        }}
-        transition={{
-          duration: 25,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
-        className="absolute bottom-[-10%] left-[-10%] w-[60vw] h-[60vh] bg-indigo-600/10 rounded-full blur-[120px]"
-      />
+      {/* Animated Ambient Glow - Only on Desktop to save mobile performance */}
+      {!isMobile && (
+        <>
+          <motion.div
+            animate={{
+              x: ['0%', '2%', '-2%', '0%'],
+              y: ['0%', '-2%', '2%', '0%'],
+              scale: [1, 1.05, 0.95, 1],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+            className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vh] bg-blue-600/10 rounded-full blur-[120px] will-change-transform"
+          />
+          <motion.div
+            animate={{
+              x: ['0%', '-3%', '3%', '0%'],
+              y: ['0%', '3%', '-3%', '0%'],
+              scale: [1, 0.95, 1.05, 1],
+            }}
+            transition={{
+              duration: 25,
+              repeat: Infinity,
+              ease: 'linear',
+            }}
+            className="absolute bottom-[-10%] left-[-10%] w-[60vw] h-[60vh] bg-indigo-600/10 rounded-full blur-[120px] will-change-transform"
+          />
+        </>
+      )}
     </div>
   );
 };

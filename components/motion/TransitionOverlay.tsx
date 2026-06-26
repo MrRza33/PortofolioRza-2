@@ -38,8 +38,8 @@ export const TransitionOverlay = ({ profile }: { profile?: any }) => {
           transition={{ duration: 0.25, ease: 'easeOut' }}
           className="fixed inset-0 z-[9999] bg-black flex items-center justify-center pointer-events-none"
         >
-          {/* Subtle blue glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/20 rounded-full blur-[100px]" />
+          {/* Subtle blue glow (removed blur on mobile for performance) */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/20 rounded-full md:blur-[100px] blur-[40px] will-change-transform" />
           
           {/* Logo */}
           <motion.div

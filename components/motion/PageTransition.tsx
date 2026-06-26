@@ -8,15 +8,28 @@ export const PageTransition = ({ children }: { children: React.ReactNode }) => {
     window.scrollTo(0, 0);
   }, []);
 
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+
   if (isReducedMotion) {
     return <>{children}</>;
   }
 
+  const variants = isMobile ? {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -12 }
+  } : {
+    initial: { opacity: 0, filter: 'blur(6px)', y: 20 },
+    animate: { opacity: 1, filter: 'blur(0px)', y: 0 },
+    exit: { opacity: 0, filter: 'blur(6px)', y: -12 }
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, filter: 'blur(6px)', y: 20 }}
-      animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
-      exit={{ opacity: 0, filter: 'blur(6px)', y: -12, transition: { duration: 0.25, ease: 'easeOut' } }}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      variants={variants}
       transition={{ 
         duration: 0.45, 
         type: 'spring', 

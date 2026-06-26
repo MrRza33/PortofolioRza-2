@@ -22,7 +22,7 @@ export const Cursor = () => {
 
   useEffect(() => {
     const checkTouch = () => {
-      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches);
     };
     checkTouch();
 
