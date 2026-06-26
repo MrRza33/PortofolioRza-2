@@ -7,16 +7,13 @@ import { AdminDashboard } from './components/AdminDashboard';
 import { Profile, Experience, Skill, Project, BlogPost, ContactMessage, Subscriber, Music } from './types';
 import { Button, Input, Card } from './components/ui';
 import { Loader2, Download, Home, Menu, X, ChevronRight, Music2, Play, Pause, Volume2, VolumeX } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, LayoutGroup } from 'framer-motion';
 
 // --- SCROLL TO TOP & TRACKING UTILITY ---
 const PageTracker = () => {
     const { pathname } = useLocation();
     
     useEffect(() => {
-        // Scroll to top
-        window.scrollTo(0, 0);
-
         // Record Visit if not admin
         if (!pathname.includes('/admin') && !pathname.includes('/portalreza')) {
             db.recordVisit(pathname);
@@ -25,12 +22,18 @@ const PageTracker = () => {
     return null;
 };
 
+import { useCursor } from './hooks/useCursor';
+import { Magnetic } from './components/ui/Cursor';
+
+import { NavigationIndicator } from './components/motion/NavigationIndicator';
+
 // --- NAV BAR ---
 const Navbar = ({ profile }: { profile?: Profile | null }) => {
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+    const { setVariant, resetCursor } = useCursor();
     // Update deteksi halaman login ke rute rahasia
     const isLoginPage = location.pathname === '/portalreza';
     const isHomePage = location.pathname === '/';
@@ -119,30 +122,39 @@ const Navbar = ({ profile }: { profile?: Profile | null }) => {
                     {/* Desktop Navigation */}
                     {!isLoginPage && (
                         <nav className="hidden md:flex items-center gap-1">
-                            {navLinks.map((link) => (
-                                link.type === 'scroll' ? (
-                                    <a 
-                                        key={link.name}
-                                        href={`#${link.target}`}
-                                        onClick={(e) => handleNavClick(e, link.target)}
-                                        className="px-4 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-white/5 rounded-full transition-all duration-300 relative group"
-                                    >
-                                        {link.name}
-                                    </a>
-                                ) : (
-                                    <Link 
-                                        key={link.name}
-                                        to={link.target}
-                                        className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
-                                            location.pathname === link.target 
-                                            ? 'text-white bg-white/10' 
-                                            : 'text-neutral-300 hover:text-white hover:bg-white/5'
-                                        }`}
-                                    >
-                                        {link.name}
-                                    </Link>
-                                )
-                            ))}
+                            <LayoutGroup>
+                                {navLinks.map((link) => (
+                                    link.type === 'scroll' ? (
+                                        <Magnetic key={link.name} intensity={4}>
+                                            <a 
+                                                href={`#${link.target}`}
+                                                onClick={(e) => handleNavClick(e, link.target)}
+                                                onMouseEnter={() => setVariant('text')}
+                                                onMouseLeave={resetCursor}
+                                                className="px-4 py-2 text-sm font-medium text-neutral-300 hover:text-white hover:bg-white/5 rounded-full transition-all duration-300 relative group"
+                                            >
+                                                {link.name}
+                                            </a>
+                                        </Magnetic>
+                                    ) : (
+                                        <Magnetic key={link.name} intensity={4}>
+                                            <Link 
+                                                to={link.target}
+                                                onMouseEnter={() => setVariant('text')}
+                                                onMouseLeave={resetCursor}
+                                                className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 relative ${
+                                                    location.pathname === link.target 
+                                                    ? 'text-white' 
+                                                    : 'text-neutral-300 hover:text-white hover:bg-white/5'
+                                                }`}
+                                            >
+                                                {location.pathname === link.target && <NavigationIndicator />}
+                                                <span className="relative z-10">{link.name}</span>
+                                            </Link>
+                                        </Magnetic>
+                                    )
+                                ))}
+                            </LayoutGroup>
                         </nav>
                     )}
                     
@@ -281,7 +293,7 @@ const MusicPlayer = ({ musics }: { musics: Music[] }) => {
             if (!audioRef.current.src.endsWith(newSrc)) {
                 audioRef.current.src = newSrc;
                 if (isPlaying) {
-                    audioRef.current.play().catch(e => console.log('Autoplay restricted:', e));
+                    audioRef.current.play().catch(() => {});
                 }
             }
         }
@@ -292,8 +304,7 @@ const MusicPlayer = ({ musics }: { musics: Music[] }) => {
         if (audioRef.current) {
             audioRef.current.muted = isMuted;
             if (isPlaying) {
-                audioRef.current.play().catch(e => {
-                    console.log('Autoplay restricted:', e);
+                audioRef.current.play().catch(() => {
                     // Do not set isPlaying to false here so it can play on next interaction
                 });
             } else {
@@ -308,7 +319,7 @@ const MusicPlayer = ({ musics }: { musics: Music[] }) => {
             if (!hasInteracted.current) {
                 hasInteracted.current = true;
                 if (isPlaying && audioRef.current && audioRef.current.paused) {
-                    audioRef.current.play().catch(e => console.log('Autoplay restricted on interaction:', e));
+                    audioRef.current.play().catch(() => {});
                 }
             }
         };
@@ -451,6 +462,11 @@ const Login = ({ onLogin }: { onLogin: () => void }) => {
     );
 };
 
+import { PageTransition } from './components/motion/PageTransition';
+import { AnimatedRoutes } from './components/motion/AnimatedRoutes';
+
+import { AmbientBackground } from './components/motion/AmbientBackground';
+
 function AppContent() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -544,7 +560,8 @@ function AppContent() {
     if (!data.profile) return null;
 
     return (
-        <div className="bg-black min-h-screen text-neutral-200 font-sans selection:bg-blue-500/30 selection:text-blue-200">
+        <div className="bg-black min-h-screen text-neutral-200 font-sans selection:bg-blue-500/30 selection:text-blue-200 relative">
+            <AmbientBackground />
             <PageTracker />
             <Navbar profile={data.profile} />
             {!isAdminRoute && data.musics && data.musics.length > 0 && (
@@ -553,54 +570,68 @@ function AppContent() {
             {!isAdminRoute && (
                 <PromoPopup profile={data.profile} />
             )}
-            <Routes>
+            <AnimatedRoutes profile={data.profile}>
                     {/* Home Route: Hero, About, Experience, Skills */}
                     <Route path="/" element={
-                        <main>
-                            <Hero profile={data.profile} />
-                            <About profile={data.profile} />
-                            <ExperienceSection experiences={data.experience} />
-                            <Skills skills={data.skills} />
-                            <ProjectsTeaser projects={data.projects} profile={data.profile} />
-                            <BlogTeaser posts={data.posts} profile={data.profile} />
-                        </main>
+                        <PageTransition>
+                            <main>
+                                <Hero profile={data.profile} />
+                                <About profile={data.profile} />
+                                <ExperienceSection experiences={data.experience} />
+                                <Skills skills={data.skills} />
+                                <ProjectsTeaser projects={data.projects} profile={data.profile} />
+                                <BlogTeaser posts={data.posts} profile={data.profile} />
+                            </main>
+                        </PageTransition>
                     } />
                     
                     {/* Dedicated Pages */}
                     <Route path="/projects" element={
-                        <ProjectsPage projects={data.projects} portfolioUrl={data.profile.portfolio_url} profile={data.profile} />
+                        <PageTransition>
+                            <ProjectsPage projects={data.projects} portfolioUrl={data.profile.portfolio_url} profile={data.profile} />
+                        </PageTransition>
                     } />
                     
                     <Route path="/blog" element={
-                        <BlogPage posts={data.posts} profile={data.profile} />
+                        <PageTransition>
+                            <BlogPage posts={data.posts} profile={data.profile} />
+                        </PageTransition>
                     } />
 
                     {/* Blog Detail Route - Supports Slug or ID */}
                     <Route path="/blog/:slug" element={
-                        <BlogDetail posts={data.posts} profile={data.profile} />
+                        <PageTransition>
+                            <BlogDetail posts={data.posts} profile={data.profile} />
+                        </PageTransition>
                     } />
 
                     <Route path="/contact" element={
-                        <ContactPage profile={data.profile} />
+                        <PageTransition>
+                            <ContactPage profile={data.profile} />
+                        </PageTransition>
                     } />
 
                     {/* Secret Admin Routes */}
                     {/* Rute Rahasia untuk Login */}
                     <Route path="/portalreza" element={
-                        isAuthenticated ? <Navigate to="/admin" /> : <Login onLogin={() => setIsAuthenticated(true)} />
+                        <PageTransition>
+                            {isAuthenticated ? <Navigate to="/admin" /> : <Login onLogin={() => setIsAuthenticated(true)} />}
+                        </PageTransition>
                     } />
                     
                     {/* Dashboard Admin - Redirect ke Home jika belum login (Stealth Mode) */}
                     <Route path="/admin" element={
-                        isAuthenticated ? (
-                            <AdminDashboard 
-                                data={data as any} 
-                                refreshData={initApp} 
-                                onLogout={handleLogout} 
-                            />
-                        ) : (
-                            <Navigate to="/" replace />
-                        )
+                        <PageTransition>
+                            {isAuthenticated ? (
+                                <AdminDashboard 
+                                    data={data as any} 
+                                    refreshData={initApp} 
+                                    onLogout={handleLogout} 
+                                />
+                            ) : (
+                                <Navigate to="/" replace />
+                            )}
+                        </PageTransition>
                     } />
                     
                     {/* Tangani rute /login lama agar tidak bisa diakses */}
@@ -608,16 +639,21 @@ function AppContent() {
 
                     {/* Fallback route to catch unknown paths (e.g., AI Studio preview URLs) and redirect to home */}
                     <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
+            </AnimatedRoutes>
                 <Footer />
             </div>
     );
 }
 
+import { CursorProvider, Cursor } from './components/ui/Cursor';
+
 export default function App() {
     return (
-        <Router>
-            <AppContent />
-        </Router>
+        <CursorProvider>
+            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <Cursor />
+                <AppContent />
+            </Router>
+        </CursorProvider>
     );
 }

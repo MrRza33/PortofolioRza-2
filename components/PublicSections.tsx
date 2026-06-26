@@ -6,6 +6,8 @@ import { Download, Github, Linkedin, Mail, ExternalLink, Calendar, Briefcase, Gr
 import { Profile, Experience, Skill, Project, BlogPost, Comment } from '../types';
 import { Button, Card, Input, Textarea, Label, MarkdownRenderer } from './ui';
 import { db } from '../services/database';
+import { useCursor } from '../hooks/useCursor';
+import { Magnetic } from './ui/Cursor';
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
@@ -85,6 +87,7 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
         : [project.image_url];
     
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const { setVariant, resetCursor } = useCursor();
 
     const nextImage = (e?: React.MouseEvent) => {
         e?.stopPropagation();
@@ -114,14 +117,34 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
             >
                 {/* Close Button */}
                 <button 
-                    onClick={onClose}
+                    onClick={() => { resetCursor(); onClose(); }}
+                    onMouseEnter={() => setVariant('button', 'CLOSE')}
+                    onMouseLeave={resetCursor}
                     className="absolute top-4 right-4 z-50 p-2 bg-black/50 hover:bg-black/80 text-white rounded-full transition-colors"
                 >
                     <X className="w-6 h-6" />
                 </button>
 
                 {/* Left: Image Carousel */}
-                <div className="w-full md:w-2/3 bg-black relative flex items-center justify-center overflow-hidden h-[40vh] md:h-auto group">
+                <div 
+                    className="w-full md:w-2/3 bg-black relative flex items-center justify-center overflow-hidden h-[40vh] md:h-auto group cursor-none"
+                    onMouseMove={(e) => {
+                        if (images.length <= 1) {
+                            setVariant('image', 'DRAG');
+                            return;
+                        }
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const isRight = e.clientX > rect.left + rect.width / 2;
+                        setVariant(isRight ? 'gallery-next' : 'gallery-prev', isRight ? 'NEXT' : 'PREV');
+                    }}
+                    onMouseLeave={resetCursor}
+                    onClick={(e) => {
+                        if (images.length <= 1) return;
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const isRight = e.clientX > rect.left + rect.width / 2;
+                        isRight ? nextImage(e) : prevImage(e);
+                    }}
+                >
                     <AnimatePresence mode='wait'>
                         <motion.img 
                             key={currentImageIndex}
@@ -130,33 +153,20 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
                             transition={{ duration: 0.3 }}
-                            className="w-full h-full object-contain"
+                            className="w-full h-full object-contain pointer-events-none"
                             alt={project.title}
                         />
                     </AnimatePresence>
 
-                    {/* Navigation Buttons */}
+                    {/* Navigation Buttons (Hidden but functional for accessibility) */}
                     {images.length > 1 && (
                         <>
-                            <button 
-                                onClick={prevImage}
-                                className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full hover:bg-blue-600 transition-colors opacity-0 group-hover:opacity-100"
-                            >
-                                <ChevronLeft className="w-6 h-6" />
-                            </button>
-                            <button 
-                                onClick={nextImage}
-                                className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-black/50 text-white rounded-full hover:bg-blue-600 transition-colors opacity-0 group-hover:opacity-100"
-                            >
-                                <ChevronRight className="w-6 h-6" />
-                            </button>
-                            
                             {/* Indicators */}
-                            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+                            <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10" onMouseEnter={resetCursor}>
                                 {images.map((_, idx) => (
                                     <button 
                                         key={idx}
-                                        onClick={() => setCurrentImageIndex(idx)}
+                                        onClick={(e) => { e.stopPropagation(); setCurrentImageIndex(idx); }}
                                         className={`w-2 h-2 rounded-full transition-all ${idx === currentImageIndex ? 'bg-blue-500 w-4' : 'bg-white/50 hover:bg-white'}`}
                                     />
                                 ))}
@@ -186,9 +196,18 @@ const ProjectModal = ({ project, onClose }: { project: Project, onClose: () => v
 
                     <div className="mt-auto space-y-4 pt-6 border-t border-neutral-800">
                         {project.demo_url && (
-                            <a href={project.demo_url} target="_blank" rel="noreferrer" className="flex items-center justify-center w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors">
-                                <ExternalLink className="w-4 h-4 mr-2" /> Preview
-                            </a>
+                            <Magnetic intensity={6}>
+                                <a 
+                                    href={project.demo_url} 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    onMouseEnter={() => setVariant('external', 'OPEN ↗')}
+                                    onMouseLeave={resetCursor}
+                                    className="flex items-center justify-center w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-medium transition-colors cursor-none"
+                                >
+                                    <ExternalLink className="w-4 h-4 mr-2" /> Preview
+                                </a>
+                            </Magnetic>
                         )}
                     </div>
                 </div>
@@ -471,6 +490,7 @@ export const Skills = ({ skills }: { skills: Skill[] }) => {
 export const ProjectsTeaser = ({ projects, profile }: { projects: Project[], profile?: Profile }) => {
   const displayProjects = projects.slice(0, 3); // Max 3 items
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const { setVariant, resetCursor } = useCursor();
   
   return (
     <section className="py-24 bg-black">
@@ -494,8 +514,10 @@ export const ProjectsTeaser = ({ projects, profile }: { projects: Project[], pro
                        whileInView={{ opacity: 1, y: 0 }}
                        viewport={{ once: true, margin: "-100px" }}
                        transition={{ delay: idx * 0.1 }}
-                       className={`group relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 ${spanClass} cursor-pointer`}
-                       onClick={() => setSelectedProject(project)}
+                       className={`group relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900 ${spanClass} cursor-none`}
+                       onClick={() => { resetCursor(); setSelectedProject(project); }}
+                       onMouseEnter={() => setVariant('project', 'VIEW PROJECT')}
+                       onMouseLeave={resetCursor}
                     >
                        <img 
                             src={project.image_url} 
@@ -596,6 +618,7 @@ export const ProjectsPage = ({ projects, portfolioUrl, profile }: { projects: Pr
   const [filter, setFilter] = useState('all');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const categories = ['all', ...Array.from(new Set(projects.map(p => p.category)))];
+  const { setVariant, resetCursor } = useCursor();
 
   const filteredProjects = filter === 'all' 
     ? projects 
@@ -659,8 +682,10 @@ export const ProjectsPage = ({ projects, portfolioUrl, profile }: { projects: Pr
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.9 }}
-                  className={`group relative rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 hover:border-blue-500/50 transition-all duration-300 ${spanClass} cursor-pointer`}
-                  onClick={() => setSelectedProject(project)}
+                  className={`group relative rounded-xl overflow-hidden bg-neutral-900 border border-neutral-800 hover:border-blue-500/50 transition-all duration-300 ${spanClass} cursor-none`}
+                  onClick={() => { resetCursor(); setSelectedProject(project); }}
+                  onMouseEnter={() => setVariant('project', 'VIEW PROJECT')}
+                  onMouseLeave={resetCursor}
                 >
                     <img 
                       src={project.image_url} 

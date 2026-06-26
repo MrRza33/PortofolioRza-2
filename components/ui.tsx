@@ -2,6 +2,8 @@
 import React from 'react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useCursor } from '../hooks/useCursor';
+import { Magnetic } from './ui/Cursor';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -14,17 +16,13 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', onMouseEnter, onMouseLeave, ...props }, ref) => {
+    const { setVariant, resetCursor } = useCursor();
     const variants = {
-      // Primary: Blue-600
       primary: 'bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-blue-600/20 border-0',
-      // Secondary: Neutral Dark
       secondary: 'bg-neutral-800 text-neutral-100 hover:bg-neutral-700',
-      // Outline: Neutral Border
       outline: 'border border-neutral-700 bg-transparent hover:bg-neutral-800 text-neutral-200',
-      // Ghost: Hover effect only
       ghost: 'hover:bg-neutral-800/50 text-neutral-300 hover:text-white',
-      // Danger: Red
       danger: 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20',
     };
     const sizes = {
@@ -32,9 +30,22 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       md: 'h-10 px-4 py-2',
       lg: 'h-12 px-6 text-lg',
     };
-    return (
+    
+    const handleMouseEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
+      setVariant('button', 'CLICK');
+      if (onMouseEnter) onMouseEnter(e);
+    };
+
+    const handleMouseLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+      resetCursor();
+      if (onMouseLeave) onMouseLeave(e);
+    };
+
+    const buttonContent = (
       <button
         ref={ref}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         className={cn(
           'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:pointer-events-none disabled:opacity-50',
           variants[variant],
@@ -44,6 +55,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       />
     );
+
+    // Apply magnetic effect only to primary CTA
+    if (variant === 'primary') {
+      return <Magnetic intensity={8}>{buttonContent}</Magnetic>;
+    }
+    
+    return buttonContent;
   }
 );
 Button.displayName = 'Button';

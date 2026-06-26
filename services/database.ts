@@ -398,8 +398,6 @@ export const db = {
   async saveProject(item: Project): Promise<void> {
     if (!isSupabaseConfigured || !supabase) throw new Error("Database not connected");
     const payload = sanitizePayload(item);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) payload.user_id = user.id;
 
     let { error } = await supabase.from('projects').upsert(payload);
     if (error && error.message.includes("Could not find the 'user_id' column")) {
